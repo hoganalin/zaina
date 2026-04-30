@@ -57,7 +57,7 @@ Sprint progress lives in the README's roadmap table. When starting a Sprint, upd
 - **`/tdd`** when implementing a feature — red / green / refactor, one vertical slice at a time.
 - **`/to-issues`** when breaking a Sprint into tracked work items.
 
-These are in `.claude/skills/`. Don't substitute other skills without asking.
+These live user-globally at `~/.claude/skills/` (not committed in this repo). Don't substitute other skills without asking.
 
 ## Scope rule
 
