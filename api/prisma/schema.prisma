@@ -1,0 +1,241 @@
+// Schema reflects the v1 domain model. See ../../CONTEXT.md for terminology.
+// Sprint 0 sketches the shape; Sprints 1-7 will fill in indexes, cascades,
+// and any missing fields as features land.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Identity
+// ─────────────────────────────────────────────────────────────
+
+enum Gender {
+  male
+  female
+  non_binary
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  firebaseUid         String   @unique
+  nickname            String
+  gender              Gender?
+  country             String?
+  city                String?
+  avatarUrl           String?
+  bio                 String?
+  isVerified          Boolean  @default(false)
+  onboardingCompleted Boolean  @default(false)
+  createdAt           DateTime @default(now())
+
+  posts               Post[]
+  comments            Comment[]
+  postLikes           PostLike[]
+  interests           UserInterest[]
+  followedChannels    ChannelFollow[]
+  followers           UserFollow[]   @relation("UserFollowFollowing")
+  following           UserFollow[]   @relation("UserFollowFollower")
+  conversationsAsA    Conversation[] @relation("ConversationUserA")
+  conversationsAsB    Conversation[] @relation("ConversationUserB")
+  messagesSent        Message[]
+  blocksMade          Block[]        @relation("BlockBlocker")
+  blocksReceived      Block[]        @relation("BlockBlocked")
+  verifications       Verification[]
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum IdentityType {
+  student
+  employee
+}
+
+model Verification {
+  id           String             @id @default(uuid())
+  userId       String
+  identityType IdentityType
+  imageUrl     String
+  status       VerificationStatus @default(pending)
+  reviewedAt   DateTime?
+  createdAt    DateTime           @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Content
+// ─────────────────────────────────────────────────────────────
+
+model Channel {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String?
+  icon        String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  posts     Post[]
+  followers ChannelFollow[]
+}
+
+model Post {
+  id           String   @id @default(uuid())
+  authorId     String
+  channelId    String
+  title        String
+  body         String
+  city         String
+  country      String
+  imageUrl     String?
+  viewCount    Int      @default(0)
+  likeCount    Int      @default(0)
+  commentCount Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  channel  Channel    @relation(fields: [channelId], references: [id])
+  comments Comment[]
+  likes    PostLike[]
+
+  @@index([channelId, createdAt])
+  @@index([city, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([authorId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Attributes & relationships
+// ─────────────────────────────────────────────────────────────
+
+enum InterestCategory {
+  active
+  static
+}
+
+model Interest {
+  id       String           @id @default(uuid())
+  slug     String           @unique
+  name     String
+  category InterestCategory
+
+  users UserInterest[]
+}
+
+model UserInterest {
+  userId     String
+  interestId String
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@id([userId, interestId])
+}
+
+model ChannelFollow {
+  userId    String
+  channelId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([userId, channelId])
+}
+
+model PostLike {
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model UserFollow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// DM
+// ─────────────────────────────────────────────────────────────
+
+enum ConversationStatus {
+  message_request
+  active
+}
+
+model Conversation {
+  id            String             @id @default(uuid())
+  userAId       String // always the smaller UUID, enforced in code
+  userBId       String
+  status        ConversationStatus @default(message_request)
+  lastMessageAt DateTime           @default(now())
+  createdAt     DateTime           @default(now())
+
+  userA    User      @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User      @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([userAId, userBId])
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Safety
+// ─────────────────────────────────────────────────────────────
+
+model Block {
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("BlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+}

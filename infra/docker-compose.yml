@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zaina-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zaina
+      POSTGRES_PASSWORD: zaina
+      POSTGRES_DB: zaina
+    ports:
+      - "5432:5432"
+    volumes:
+      - zaina-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zaina -d zaina"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  zaina-pgdata:
