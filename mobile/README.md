@@ -1,32 +1,17 @@
 # mobile/ — Flutter app
 
-> Sprint 0 leaves this directory as a placeholder. Sprint 1 will run `flutter create` to scaffold the actual project, then commit the result.
+Scaffolded with `flutter create . --org com --project-name zaina --platforms=ios,android`, giving bundle / package id `com.zaina` to match the Firebase project (`zaina-95124`).
 
-## Why this directory is empty right now
+## Firebase config (gitignored)
 
-The host system has Flutter installed at `/mnt/c/flutter/` (Windows side, accessed through WSL). Calling `flutter create` from inside WSL fails with a `\r` line-ending error because the Windows scripts aren't WSL-friendly. Rather than create a half-broken scaffold, Sprint 0 stops here and leaves the actual `flutter create` to be run **on the Windows side**.
+- Android: `android/app/google-services.json`
+- iOS: `ios/Runner/GoogleService-Info.plist`
 
-## What Sprint 1 will do
+A fresh checkout needs to download these from the Firebase console and drop them into the paths above. They contain client-side API keys, not secrets, but are gitignored to keep config refresh manual.
 
-From a Windows terminal (PowerShell or Command Prompt), at the repo root:
+## Dependencies to add (Sprint 1+)
 
-```powershell
-cd C:\Users\Rogan\projects\zaina\mobile  # or wherever the repo is on the Windows side
-flutter create . --org com.zaina --project-name zaina --platforms=ios,android
-```
-
-Alternatively, install Flutter natively in WSL:
-
-```bash
-sudo snap install flutter --classic
-flutter doctor
-cd /home/rogan/projects/zaina/mobile
-flutter create . --org com.zaina --project-name zaina --platforms=ios,android
-```
-
-## Planned dependencies (Sprint 1+)
-
-To be added to `pubspec.yaml` once the project is scaffolded:
+`pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -48,4 +33,4 @@ dev_dependencies:
   riverpod_generator: ^2.6.3
 ```
 
-Run `flutter pub get` after adding these. Then `dart run build_runner watch` keeps generated files in sync.
+Then `flutter pub get` and `dart run build_runner watch` to keep generated files in sync.
