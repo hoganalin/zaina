@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../api/conversations_api.dart';
 import '../../api/users_api.dart';
 import '../feed/feed_screen.dart';
 import '../sign_in/auth_providers.dart';
@@ -105,6 +106,33 @@ class ProfileScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                   child: Text(user.bio!),
+                ),
+              if (!isMe)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      label: const Text('私訊'),
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final navigator = GoRouter.of(context);
+                        final result = await ref
+                            .read(conversationsApiProvider)
+                            .openWith(user.id);
+                        if (result == null) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('還不能私訊 — 需要先在公開區互動（留言或被留言）'),
+                            ),
+                          );
+                          return;
+                        }
+                        navigator.push('/chat/${result.id}');
+                      },
+                    ),
+                  ),
                 ),
               const Divider(height: 1),
               Padding(

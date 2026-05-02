@@ -87,7 +87,7 @@ docker compose up -d
 | 3 | ✅ done | Read-only Feed with seed posts, two tabs |
 | 4 | ✅ done | Posting + Comment + Like |
 | 5 | ✅ done | Channel follow/unfollow, profile pages |
-| 6 | ⏳ | DM with Socket.io + Conversation Eligibility + Message Request |
+| 6 | ✅ done | DM with Socket.io + Conversation Eligibility + Message Request |
 | 7 | ⏳ | Verification UI + Block + push notifications |
 | 8 | ⏳ | GCP deploy + screenshots + demo recording |
 

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'screens/channels/channels_screen.dart';
 import 'screens/compose/compose_post_screen.dart';
+import 'screens/conversations/chat_screen.dart';
+import 'screens/conversations/conversations_screen.dart';
 import 'screens/feed/feed_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/post_detail/post_detail_screen.dart';
@@ -77,6 +79,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/messages',
+                builder: (_, _) => const ConversationsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/me',
                 builder: (_, _) => const _MyProfileTab(),
               ),
@@ -101,6 +111,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/edit-profile',
         builder: (_, _) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:id',
+        builder: (_, state) =>
+            ChatScreen(conversationId: state.pathParameters['id']!),
       ),
     ],
   );
