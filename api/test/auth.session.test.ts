@@ -11,13 +11,20 @@ vi.mock('firebase-admin/auth', () => ({
 const { app } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
 
+const TEST_UID_PREFIX = 'firebase-uid-auth-session-';
+
 describe('POST /api/auth/session', () => {
   beforeEach(async () => {
     verifyIdTokenMock.mockReset();
-    await prisma.user.deleteMany();
+    await prisma.user.deleteMany({
+      where: { firebaseUid: { startsWith: TEST_UID_PREFIX } },
+    });
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany({
+      where: { firebaseUid: { startsWith: TEST_UID_PREFIX } },
+    });
     await prisma.$disconnect();
   });
 
@@ -36,7 +43,7 @@ describe('POST /api/auth/session', () => {
   });
 
   it('creates a User on first valid token and returns self-view', async () => {
-    const uid = 'firebase-uid-new-user';
+    const uid = `${TEST_UID_PREFIX}new-user`;
     verifyIdTokenMock.mockResolvedValueOnce({ uid, name: 'Hogan Lin' });
 
     const res = await app.request('/api/auth/session', {
@@ -65,7 +72,7 @@ describe('POST /api/auth/session', () => {
   });
 
   it('returns the same User on repeat sign-in (idempotent)', async () => {
-    const uid = 'firebase-uid-repeat';
+    const uid = `${TEST_UID_PREFIX}repeat`;
     verifyIdTokenMock.mockResolvedValue({ uid, name: 'Repeat User' });
 
     const res1 = await app.request('/api/auth/session', {

@@ -84,7 +84,7 @@ docker compose up -d
 | 0 | ✅ done | Repo init, skeleton, decisions documented |
 | 1 | ✅ done | Google + Apple sign-in → Firebase verify → DB User |
 | 2 | ✅ done | Onboarding (nickname / gender / city / interests / channels) |
-| 3 | ⏳ | Read-only Feed with seed posts, two tabs |
+| 3 | ✅ done | Read-only Feed with seed posts, two tabs |
 | 4 | ⏳ | Posting + Comment + Like |
 | 5 | ⏳ | Channel follow/unfollow, profile pages |
 | 6 | ⏳ | DM with Socket.io + Conversation Eligibility + Message Request |
