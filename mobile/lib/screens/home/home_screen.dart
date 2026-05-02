@@ -11,7 +11,16 @@ class HomeScreen extends ConsumerWidget {
     final user = ref.watch(authStateProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('在哪 ZAINA')),
+      appBar: AppBar(
+        title: const Text('在哪 ZAINA'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: '登出',
+            onPressed: () => ref.read(authStateProvider.notifier).signOut(),
+          ),
+        ],
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -22,20 +31,22 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 user == null ? '...' : '哈囉，${user.nickname}',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              if (user != null && !user.onboardingCompleted)
-                const Text(
-                  '尚未完成 Onboarding（Sprint 2 會接上）',
-                  style: TextStyle(color: Colors.black54),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
+              if (user?.city != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '在 ${user!.city}',
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              ],
               const SizedBox(height: 32),
-              OutlinedButton.icon(
-                onPressed: () =>
-                    ref.read(authStateProvider.notifier).signOut(),
-                icon: const Icon(Icons.logout),
-                label: const Text('登出'),
+              const Text(
+                '看板 Feed 將在 Sprint 3 接上',
+                style: TextStyle(color: Colors.black45),
               ),
             ],
           ),
