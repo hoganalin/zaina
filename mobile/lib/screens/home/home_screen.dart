@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../api/feed_api.dart';
 import '../../models/feed_post.dart';
@@ -44,6 +45,10 @@ class HomeScreen extends ConsumerWidget {
             ),
           ],
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => context.push('/compose'),
+          child: const Icon(Icons.edit),
+        ),
       ),
     );
   }
@@ -86,7 +91,10 @@ class _FeedTab extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: posts.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (_, i) => _PostCard(post: posts[i]),
+            itemBuilder: (context, i) => _PostCard(
+              post: posts[i],
+              onTap: () => context.push('/post/${posts[i].id}'),
+            ),
           );
         },
       ),
@@ -95,15 +103,16 @@ class _FeedTab extends ConsumerWidget {
 }
 
 class _PostCard extends StatelessWidget {
-  const _PostCard({required this.post});
+  const _PostCard({required this.post, required this.onTap});
 
   final FeedPost post;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Column(

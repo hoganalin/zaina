@@ -39,6 +39,7 @@ class FeedPost with _$FeedPost {
     String? imageUrl,
     @Default(0) int likeCount,
     @Default(0) int commentCount,
+    @Default(false) bool likedByMe,
     required DateTime createdAt,
     required FeedPostChannel channel,
     required FeedPostAuthor author,

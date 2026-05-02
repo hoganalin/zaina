@@ -5,6 +5,7 @@ import { channelsRoutes } from './routes/channels.js';
 import { feedRoutes } from './routes/feed.js';
 import { interestsRoutes } from './routes/interests.js';
 import { meRoutes } from './routes/me.js';
+import { postsRoutes } from './routes/posts.js';
 
 export const app = new Hono();
 
@@ -22,3 +23,4 @@ app.route('/api/me', meRoutes);
 app.route('/api/interests', interestsRoutes);
 app.route('/api/channels', channelsRoutes);
 app.route('/api/feed', feedRoutes);
+app.route('/api/posts', postsRoutes);

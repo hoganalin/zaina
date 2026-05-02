@@ -22,6 +22,19 @@ const postInclude = {
   author: { select: { id: true, nickname: true, avatarUrl: true } },
 } as const;
 
+async function annotateLikedByMe<T extends { id: string }>(
+  posts: T[],
+  userId: string,
+): Promise<Array<T & { likedByMe: boolean }>> {
+  if (posts.length === 0) return [];
+  const likes = await prisma.postLike.findMany({
+    where: { userId, postId: { in: posts.map((p) => p.id) } },
+    select: { postId: true },
+  });
+  const likedSet = new Set(likes.map((l) => l.postId));
+  return posts.map((p) => ({ ...p, likedByMe: likedSet.has(p.id) }));
+}
+
 feedRoutes.get(
   '/following',
   zValidator('query', paginationSchema),
@@ -47,8 +60,10 @@ feedRoutes.get(
     });
 
     const hasMore = posts.length > limit;
+    const sliced = posts.slice(0, limit);
+    const annotated = await annotateLikedByMe(sliced, userId);
     return c.json({
-      posts: posts.slice(0, limit),
+      posts: annotated,
       nextOffset: hasMore ? offset + limit : null,
     });
   },
@@ -58,7 +73,7 @@ feedRoutes.get(
   '/city',
   zValidator('query', paginationSchema),
   async (c) => {
-    const { city } = c.var.user;
+    const { id: userId, city } = c.var.user;
     const { limit, offset } = c.req.valid('query');
 
     if (!city) {
@@ -74,8 +89,10 @@ feedRoutes.get(
     });
 
     const hasMore = posts.length > limit;
+    const sliced = posts.slice(0, limit);
+    const annotated = await annotateLikedByMe(sliced, userId);
     return c.json({
-      posts: posts.slice(0, limit),
+      posts: annotated,
       nextOffset: hasMore ? offset + limit : null,
     });
   },
