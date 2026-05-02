@@ -9,28 +9,35 @@ Scaffolded with `flutter create . --org com --project-name zaina --platforms=ios
 
 A fresh checkout needs to download these from the Firebase console and drop them into the paths above. They contain client-side API keys, not secrets, but are gitignored to keep config refresh manual.
 
-## Dependencies to add (Sprint 1+)
+## Setup
 
-`pubspec.yaml`:
-
-```yaml
-dependencies:
-  flutter_riverpod: ^2.6.1
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
-  dio: ^5.7.0
-  firebase_core: ^3.8.1
-  firebase_auth: ^5.3.4
-  google_sign_in: ^6.2.2
-  sign_in_with_apple: ^6.1.4
-  go_router: ^14.6.2
-  socket_io_client: ^3.0.2
-
-dev_dependencies:
-  build_runner: ^2.4.13
-  freezed: ^2.5.7
-  json_serializable: ^6.9.0
-  riverpod_generator: ^2.6.3
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs    # generate freezed/json files
 ```
 
-Then `flutter pub get` and `dart run build_runner watch` to keep generated files in sync.
+Run with the API base URL pointing at your local backend:
+
+```bash
+# Android emulator (uses 10.0.2.2 by default — no flag needed)
+flutter run
+
+# iOS simulator (uses localhost by default)
+flutter run -d ios
+
+# Real device
+flutter run --dart-define=API_BASE_URL=http://<your-LAN-ip>:3000
+```
+
+## Sign-in flow (Sprint 1)
+
+1. Sign-in screen offers Google (all platforms) + Apple (iOS only).
+2. Firebase SDK returns an ID token.
+3. App calls `POST /api/auth/session` with the token in `Authorization: Bearer …`.
+4. Backend verifies, find-or-creates a User row, returns the self-view.
+5. Self-view is held in a Riverpod `AsyncNotifier`; router redirects to `/home`.
+
+### Platform-specific extras
+
+- **Android** — Google Sign-In needs the debug keystore SHA-1 in the Firebase console (`./gradlew signingReport` from `android/`).
+- **iOS** — `Info.plist` needs `CFBundleURLTypes` with the `REVERSED_CLIENT_ID` from `GoogleService-Info.plist`. Apple Sign In needs the capability enabled in Xcode (paid Apple dev account).

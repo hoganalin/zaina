@@ -82,7 +82,7 @@ docker compose up -d
 | Sprint | Status | Scope |
 |---|---|---|
 | 0 | ✅ done | Repo init, skeleton, decisions documented |
-| 1 | 🚧 next | Google + Apple sign-in → Firebase verify → DB User |
+| 1 | ✅ done | Google + Apple sign-in → Firebase verify → DB User |
 | 2 | ⏳ | Onboarding (nickname / gender / city / interests / channels) |
 | 3 | ⏳ | Read-only Feed with seed posts, two tabs |
 | 4 | ⏳ | Posting + Comment + Like |
