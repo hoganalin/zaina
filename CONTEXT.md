@@ -8,6 +8,10 @@ A topic-first social app for overseas Taiwanese (旅居海外的台灣人) to fi
 The app's core loop is "browse 看板 → read/post → engage → DM". There is no swipe, no match.
 _Avoid_: matching, swipe, 配對
 
+**User**:
+A person whose identity has been verified by Firebase Auth (Google or Apple sign-in). One Firebase identity corresponds to exactly one User row. The row is created at first verified sign-in with `onboardingCompleted=false` and a placeholder nickname; Onboarding (Sprint 2) fills in nickname, gender, city, and interests. A User without onboarding has signed in but is not yet usable as an Author or Followed Person.
+_Avoid_: account, member, profile (these refer to different concerns)
+
 **Followed Person (追蹤的人)**:
 A user another user has chosen to follow or has DM'd. Replaces the earlier term 夥伴.
 _Avoid_: 夥伴, buddy, companion, match
