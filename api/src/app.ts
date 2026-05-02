@@ -8,6 +8,7 @@ import { interestsRoutes } from './routes/interests.js';
 import { meRoutes } from './routes/me.js';
 import { postsRoutes } from './routes/posts.js';
 import { usersRoutes } from './routes/users.js';
+import { verificationsRoutes } from './routes/verifications.js';
 
 export const app = new Hono();
 
@@ -28,3 +29,4 @@ app.route('/api/feed', feedRoutes);
 app.route('/api/posts', postsRoutes);
 app.route('/api/users', usersRoutes);
 app.route('/api/conversations', conversationsRoutes);
+app.route('/api/verifications', verificationsRoutes);

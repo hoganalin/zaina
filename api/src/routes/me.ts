@@ -42,6 +42,24 @@ meRoutes.patch('/', zValidator('json', profileEditSchema), async (c) => {
   return c.json({ user: stripFirebaseUid(updated) });
 });
 
+const pushTokenSchema = z.object({
+  fcmToken: z.string().min(1).nullable(),
+});
+
+meRoutes.patch(
+  '/push-token',
+  zValidator('json', pushTokenSchema),
+  async (c) => {
+    const userId = c.var.userId;
+    const { fcmToken } = c.req.valid('json');
+    await prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken },
+    });
+    return c.json({ ok: true });
+  },
+);
+
 const onboardingSchema = z.object({
   nickname: z.string().min(1).max(40),
   gender: z.enum(['male', 'female', 'non_binary']).optional(),

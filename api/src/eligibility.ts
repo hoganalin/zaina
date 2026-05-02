@@ -7,9 +7,21 @@ import { prisma } from './db.js';
  *  - A and B both commented on the same Post
  *
  * The check runs against the `Comment` table; no eligibility table exists.
+ * Block (either direction) severs eligibility unconditionally.
  */
 export async function canDM(aId: string, bId: string): Promise<boolean> {
   if (aId === bId) return false;
+
+  const blocked = await prisma.block.findFirst({
+    where: {
+      OR: [
+        { blockerId: aId, blockedId: bId },
+        { blockerId: bId, blockedId: aId },
+      ],
+    },
+    select: { blockerId: true },
+  });
+  if (blocked) return false;
 
   const aOnB = await prisma.comment.findFirst({
     where: { authorId: aId, post: { authorId: bId } },

@@ -93,6 +93,16 @@ class UsersApi {
   }
 }
 
+extension BlockApi on UsersApi {
+  Future<void> block(String userId) async {
+    await dio.post('/api/users/$userId/block');
+  }
+
+  Future<void> unblock(String userId) async {
+    await dio.delete('/api/users/$userId/block');
+  }
+}
+
 final usersApiProvider = Provider<UsersApi>((ref) => UsersApi(ref));
 
 String _genderToJson(Gender g) => switch (g) {

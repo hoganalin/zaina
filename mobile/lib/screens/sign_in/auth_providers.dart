@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../api/dio_client.dart';
+import '../../api/fcm_service.dart';
 import '../../models/self_view.dart';
 
 class AuthNotifier extends AsyncNotifier<SelfView?> {
@@ -17,7 +20,10 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
   Future<SelfView?> _fetchSelfView() async {
     final res = await dio.post<Map<String, dynamic>>('/api/auth/session');
     final data = res.data!;
-    return SelfView.fromJson(data['user'] as Map<String, dynamic>);
+    final view = SelfView.fromJson(data['user'] as Map<String, dynamic>);
+    // Best-effort FCM registration; never blocks sign-in.
+    unawaited(ref.read(fcmServiceProvider).register());
+    return view;
   }
 
   Future<void> signInWithGoogle() async {
@@ -83,6 +89,7 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
   }
 
   Future<void> signOut() async {
+    await ref.read(fcmServiceProvider).unregister();
     await FirebaseAuth.instance.signOut();
     try {
       await GoogleSignIn().signOut();

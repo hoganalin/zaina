@@ -32,6 +32,7 @@ model User {
   bio                 String?
   isVerified          Boolean  @default(false)
   onboardingCompleted Boolean  @default(false)
+  fcmToken            String?
   createdAt           DateTime @default(now())
 
   posts               Post[]

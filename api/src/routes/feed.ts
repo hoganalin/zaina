@@ -2,6 +2,7 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
+import { getBlockedCounterparts } from '../blocks.js';
 import { prisma } from '../db.js';
 import {
   requireAuth,
@@ -51,8 +52,12 @@ feedRoutes.get(
     }
 
     const channelIds = follows.map((f) => f.channelId);
+    const blocked = await getBlockedCounterparts(userId);
     const posts = await prisma.post.findMany({
-      where: { channelId: { in: channelIds } },
+      where: {
+        channelId: { in: channelIds },
+        authorId: { notIn: [...blocked] },
+      },
       orderBy: { createdAt: 'desc' },
       take: limit + 1,
       skip: offset,
@@ -80,8 +85,12 @@ feedRoutes.get(
       return c.json({ posts: [], nextOffset: null });
     }
 
+    const blocked = await getBlockedCounterparts(userId);
     const posts = await prisma.post.findMany({
-      where: { city },
+      where: {
+        city,
+        authorId: { notIn: [...blocked] },
+      },
       orderBy: { createdAt: 'desc' },
       take: limit + 1,
       skip: offset,

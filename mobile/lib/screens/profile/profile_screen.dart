@@ -25,6 +25,12 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           if (isMe)
             IconButton(
+              icon: const Icon(Icons.verified_outlined),
+              tooltip: '身份驗證',
+              onPressed: () => context.push('/verify'),
+            ),
+          if (isMe)
+            IconButton(
               icon: const Icon(Icons.edit),
               tooltip: '編輯個人資料',
               onPressed: () => context.push('/edit-profile'),
@@ -34,6 +40,48 @@ class ProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.logout),
               tooltip: '登出',
               onPressed: () => ref.read(authStateProvider.notifier).signOut(),
+            ),
+          if (!isMe)
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value != 'block') return;
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = GoRouter.of(context);
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('封鎖這個用戶？'),
+                    content: const Text(
+                      '雙方將無法再看到對方的貼文與訊息。',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text('取消'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: const Text('封鎖'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm != true) return;
+                try {
+                  await ref.read(usersApiProvider).block(userId);
+                  messenger.showSnackBar(const SnackBar(
+                    content: Text('已封鎖'),
+                  ));
+                  navigator.pop();
+                } catch (e) {
+                  messenger.showSnackBar(SnackBar(
+                    content: Text('封鎖失敗：$e'),
+                  ));
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'block', child: Text('封鎖')),
+              ],
             ),
         ],
       ),

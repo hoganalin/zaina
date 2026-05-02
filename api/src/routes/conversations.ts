@@ -8,6 +8,7 @@ import {
   requireAuth,
   type AuthVariables,
 } from '../middleware/requireAuth.js';
+import { sendPush } from '../push.js';
 import { emitToUser } from '../realtime.js';
 
 export const conversationsRoutes = new Hono<{ Variables: AuthVariables }>();
@@ -176,6 +177,16 @@ conversationsRoutes.post(
     emitToUser(otherUserId, 'message:new', {
       conversationId,
       message: result,
+    });
+
+    const sender = await prisma.user.findUnique({
+      where: { id: me },
+      select: { nickname: true },
+    });
+    void sendPush(otherUserId, {
+      title: sender?.nickname ?? '新訊息',
+      body: body.length > 80 ? `${body.slice(0, 80)}…` : body,
+      data: { conversationId, type: 'dm' },
     });
 
     return c.json({ message: result }, 201);

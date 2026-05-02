@@ -88,7 +88,7 @@ docker compose up -d
 | 4 | ✅ done | Posting + Comment + Like |
 | 5 | ✅ done | Channel follow/unfollow, profile pages |
 | 6 | ✅ done | DM with Socket.io + Conversation Eligibility + Message Request |
-| 7 | ⏳ | Verification UI + Block + push notifications |
+| 7 | ✅ done | Verification UI + Block + push notifications |
 | 8 | ⏳ | GCP deploy + screenshots + demo recording |
 
 Detailed scope: [`docs/adr/0005-v1-portfolio-scope.md`](./docs/adr/0005-v1-portfolio-scope.md).

@@ -14,6 +14,7 @@ import 'screens/profile/profile_screen.dart';
 import 'screens/shell/shell_scaffold.dart';
 import 'screens/sign_in/auth_providers.dart';
 import 'screens/sign_in/sign_in_screen.dart';
+import 'screens/verification/verification_screen.dart';
 
 class _MyProfileTab extends ConsumerWidget {
   const _MyProfileTab();
@@ -116,6 +117,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/chat/:id',
         builder: (_, state) =>
             ChatScreen(conversationId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/verify',
+        builder: (_, _) => const VerificationScreen(),
       ),
     ],
   );

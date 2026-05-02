@@ -84,3 +84,30 @@ usersRoutes.get(
     });
   },
 );
+
+usersRoutes.post('/:id/block', async (c) => {
+  const blockerId = c.var.userId;
+  const blockedId = c.req.param('id');
+  if (blockerId === blockedId) {
+    return c.json({ error: 'cannot_block_self' }, 400);
+  }
+  const target = await prisma.user.findUnique({
+    where: { id: blockedId },
+    select: { id: true },
+  });
+  if (!target) return c.json({ error: 'not_found' }, 404);
+
+  await prisma.block.upsert({
+    where: { blockerId_blockedId: { blockerId, blockedId } },
+    create: { blockerId, blockedId },
+    update: {},
+  });
+  return c.json({ blocked: true });
+});
+
+usersRoutes.delete('/:id/block', async (c) => {
+  const blockerId = c.var.userId;
+  const blockedId = c.req.param('id');
+  await prisma.block.deleteMany({ where: { blockerId, blockedId } });
+  return c.json({ blocked: false });
+});
