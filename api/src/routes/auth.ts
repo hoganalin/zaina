@@ -14,7 +14,8 @@ authRoutes.post('/session', async (c) => {
   let decoded;
   try {
     decoded = await getAuth().verifyIdToken(token);
-  } catch {
+  } catch (err) {
+    console.error('[auth/session] verifyIdToken failed:', err);
     return c.json({ error: 'unauthorized' }, 401);
   }
 

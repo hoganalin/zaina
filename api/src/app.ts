@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { logger } from 'hono/logger';
 
 import { authRoutes } from './routes/auth.js';
 import { channelsRoutes } from './routes/channels.js';
@@ -11,6 +12,8 @@ import { usersRoutes } from './routes/users.js';
 import { verificationsRoutes } from './routes/verifications.js';
 
 export const app = new Hono();
+
+app.use('*', logger());
 
 app.get('/', (c) => c.json({ name: 'zaina-api', status: 'ok' }));
 
