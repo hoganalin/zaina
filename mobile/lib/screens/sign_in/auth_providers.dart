@@ -53,6 +53,10 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
     });
   }
 
+  void updateSelfView(SelfView updated) {
+    state = AsyncData(updated);
+  }
+
   Future<void> submitOnboarding({
     required String nickname,
     Gender? gender,

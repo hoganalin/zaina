@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../api/posts_api.dart';
 import '../../models/comment.dart';
@@ -92,7 +93,14 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(post.author.nickname, style: const TextStyle(color: Colors.black45)),
+                  GestureDetector(
+                    onTap: () => context.push('/profile/${post.author.id}'),
+                    child: Text(post.author.nickname,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          decoration: TextDecoration.underline,
+                        )),
+                  ),
                   const Divider(height: 32),
                   Text(post.body, style: const TextStyle(fontSize: 16, height: 1.5)),
                   const SizedBox(height: 16),

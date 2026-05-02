@@ -60,6 +60,49 @@ describe('/api/me', () => {
     });
   });
 
+  describe('PATCH /api/me (profile edit)', () => {
+    it('updates only the supplied fields and leaves onboardingCompleted alone', async () => {
+      const user = await authedUser();
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { onboardingCompleted: true },
+      });
+      verifyIdTokenMock.mockResolvedValueOnce({ uid: TEST_UID });
+
+      const res = await app.request('/api/me', {
+        method: 'PATCH',
+        headers: {
+          Authorization: 'Bearer t',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bio: 'new bio', city: 'Lisbon' }),
+      });
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { user: Record<string, unknown> };
+      expect(body.user).toMatchObject({
+        bio: 'new bio',
+        city: 'Lisbon',
+        nickname: 'Pre-onboarding',
+        onboardingCompleted: true,
+      });
+    });
+
+    it('rejects unknown fields (strict zod schema)', async () => {
+      await authedUser();
+      verifyIdTokenMock.mockResolvedValueOnce({ uid: TEST_UID });
+
+      const res = await app.request('/api/me', {
+        method: 'PATCH',
+        headers: {
+          Authorization: 'Bearer t',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ onboardingCompleted: false }),
+      });
+      expect(res.status).toBe(400);
+    });
+  });
+
   describe('PATCH /api/me/onboarding', () => {
     it('returns 401 without Authorization header', async () => {
       const res = await app.request('/api/me/onboarding', {

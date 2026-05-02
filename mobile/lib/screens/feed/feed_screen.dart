@@ -6,8 +6,8 @@ import '../../api/feed_api.dart';
 import '../../models/feed_post.dart';
 import '../sign_in/auth_providers.dart';
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+class FeedScreen extends ConsumerWidget {
+  const FeedScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,13 +19,6 @@ class HomeScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('在哪 ZAINA'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: '登出',
-              onPressed: () => ref.read(authStateProvider.notifier).signOut(),
-            ),
-          ],
           bottom: TabBar(
             tabs: [
               const Tab(text: '我關注'),
@@ -44,10 +37,6 @@ class HomeScreen extends ConsumerWidget {
               emptyHint: '尚未填寫居住城市',
             ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => context.push('/compose'),
-          child: const Icon(Icons.edit),
         ),
       ),
     );
@@ -91,7 +80,7 @@ class _FeedTab extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: posts.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (context, i) => _PostCard(
+            itemBuilder: (context, i) => PostCard(
               post: posts[i],
               onTap: () => context.push('/post/${posts[i].id}'),
             ),
@@ -102,8 +91,8 @@ class _FeedTab extends ConsumerWidget {
   }
 }
 
-class _PostCard extends StatelessWidget {
-  const _PostCard({required this.post, required this.onTap});
+class PostCard extends StatelessWidget {
+  const PostCard({super.key, required this.post, required this.onTap});
 
   final FeedPost post;
   final VoidCallback onTap;
@@ -159,14 +148,16 @@ class _PostCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.favorite_border, size: 14, color: Colors.black45),
+                Icon(post.likedByMe ? Icons.favorite : Icons.favorite_border,
+                    size: 14, color: post.likedByMe ? Colors.red : Colors.black45),
                 const SizedBox(width: 4),
                 Text('${post.likeCount}',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: Colors.black54,
                     )),
                 const SizedBox(width: 12),
-                Icon(Icons.mode_comment_outlined, size: 14, color: Colors.black45),
+                Icon(Icons.mode_comment_outlined,
+                    size: 14, color: Colors.black45),
                 const SizedBox(width: 4),
                 Text('${post.commentCount}',
                     style: theme.textTheme.labelSmall?.copyWith(

@@ -21,6 +21,27 @@ meRoutes.get('/', (c) => {
   return c.json({ user: stripFirebaseUid(c.var.user) });
 });
 
+const profileEditSchema = z
+  .object({
+    nickname: z.string().min(1).max(40).optional(),
+    gender: z.enum(['male', 'female', 'non_binary']).nullable().optional(),
+    country: z.string().min(1).max(80).nullable().optional(),
+    city: z.string().min(1).max(80).nullable().optional(),
+    bio: z.string().max(500).nullable().optional(),
+    avatarUrl: z.string().url().nullable().optional(),
+  })
+  .strict();
+
+meRoutes.patch('/', zValidator('json', profileEditSchema), async (c) => {
+  const userId = c.var.userId;
+  const data = c.req.valid('json');
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data,
+  });
+  return c.json({ user: stripFirebaseUid(updated) });
+});
+
 const onboardingSchema = z.object({
   nickname: z.string().min(1).max(40),
   gender: z.enum(['male', 'female', 'non_binary']).optional(),
