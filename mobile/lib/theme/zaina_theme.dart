@@ -251,11 +251,12 @@ ThemeData buildZainaTheme() {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
+      height: 76,
       backgroundColor: ZainaPalette.paperCreamSoft,
       indicatorColor: ZainaPalette.brickRed.withValues(alpha: 0.18),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         return TextStyle(
-          fontSize: 13,
+          fontSize: 17,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w800
               : FontWeight.w600,
