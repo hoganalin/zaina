@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../api/feed_api.dart';
@@ -21,12 +22,38 @@ class FeedScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            '在哪 ZAINA',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2.4,
-              color: ZainaPalette.brickRedDeep,
+          leadingWidth: 56,
+          leading: const Padding(
+            padding: EdgeInsets.only(left: 12),
+            child: Center(
+              child: Text('🧋', style: TextStyle(fontSize: 28)),
+            ),
+          ),
+          title: Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: ZainaPalette.cardSurface,
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(color: ZainaPalette.hairline),
+            ),
+            child: TabBar(
+              isScrollable: false,
+              dividerColor: Colors.transparent,
+              indicator: BoxDecoration(
+                color: ZainaPalette.brickRed,
+                borderRadius: BorderRadius.circular(40),
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: ZainaPalette.paperCream,
+              unselectedLabelColor: ZainaPalette.bobaBrownDeep,
+              labelStyle:
+                  const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              padding: EdgeInsets.zero,
+              labelPadding: EdgeInsets.zero,
+              tabs: [
+                const Tab(text: '所有話題'),
+                Tab(text: hasCity ? '同城' : '追蹤話題'),
+              ],
             ),
           ),
           actions: [
@@ -36,20 +63,6 @@ class FeedScreen extends ConsumerWidget {
               onPressed: () => context.push('/channels'),
             ),
           ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48),
-            child: TabBar(
-              indicatorColor: ZainaPalette.brickRed,
-              labelColor: ZainaPalette.brickRedDeep,
-              unselectedLabelColor: ZainaPalette.bobaBrownDeep,
-              labelStyle:
-                  const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              tabs: [
-                const Tab(text: '我關注'),
-                Tab(text: hasCity ? '同城 · ${user.city}' : '同城'),
-              ],
-            ),
-          ),
         ),
         body: PaperBackground(
           child: TabBarView(
@@ -109,8 +122,11 @@ class _FeedTab extends ConsumerWidget {
               ],
             );
           }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+          return MasonryGridView.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             itemCount: posts.length,
             itemBuilder: (context, i) => SignboardCard(
               post: posts[i],

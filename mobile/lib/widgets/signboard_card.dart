@@ -4,9 +4,11 @@ import '../models/feed_post.dart';
 import '../theme/zaina_theme.dart';
 import 'sun_ray_background.dart';
 
-/// 招牌看板-styled post card. If the post has imageUrl, render image-flavour;
-/// otherwise render solid-colour signboard with the post title in bubble-tea
-/// circles. Keeps the deck's two visual flavours.
+/// 招牌看板-styled post card sized for a 2-column masonry grid. Two flavours:
+///  - image-flavour (post.imageUrl set): square photo + overlaid bubble-tea
+///    stamp + caption + tag row
+///  - signboard-flavour (no image): coloured panel with sun-ray + bubble-tea
+///    stamp + caption + tag row
 class SignboardCard extends StatelessWidget {
   const SignboardCard({
     super.key,
@@ -17,246 +19,184 @@ class SignboardCard extends StatelessWidget {
   final FeedPost post;
   final VoidCallback onTap;
 
+  static List<String> _stampChars(String title) {
+    return title.runes
+        .map((r) => String.fromCharCode(r))
+        .where((c) => c.trim().isNotEmpty)
+        .take(3)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasImage = post.imageUrl != null && post.imageUrl!.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            decoration: BoxDecoration(
-              color: ZainaPalette.paperCreamSoft,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: ZainaPalette.hairline),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Header(post: post),
-                if (hasImage)
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.zero,
-                      top: Radius.circular(0),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: Image.network(
-                        post.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const SizedBox.shrink(),
-                      ),
-                    ),
-                  )
-                else
-                  _MiniSignboard(title: post.title, channelName: post.channel.name),
-                _Body(post: post),
-                _Footer(post: post),
+    final stamp = _stampChars(post.title);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: ZainaPalette.paperCream,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: ZainaPalette.hairline),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(11),
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: hasImage
+                      ? _ImageStamp(imageUrl: post.imageUrl!, chars: stamp)
+                      : _SignboardArt(chars: stamp, channelName: post.channel.name),
+                ),
+              ),
+              _CardFooter(post: post),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ImageStamp extends StatelessWidget {
+  const _ImageStamp({required this.imageUrl, required this.chars});
+  final String imageUrl;
+  final List<String> chars;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => Container(
+            color: ZainaPalette.bobaBrown.withValues(alpha: 0.2),
+          ),
+        ),
+        // Subtle dark scrim so stamp pops on bright photos
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.center,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.18),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.post});
-  final FeedPost post;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-      child: Row(
-        children: [
-          _ChannelChip(name: post.channel.name, icon: post.channel.icon),
-          const Spacer(),
-          Icon(Icons.location_on_outlined,
-              size: 14, color: ZainaPalette.bobaBrownDeep),
-          const SizedBox(width: 2),
-          Text(
-            post.city,
-            style: const TextStyle(
-              color: ZainaPalette.bobaBrownDeep,
-              fontSize: 12,
-            ),
+        Center(
+          child: BubbleTeaStamp(
+            chars: chars,
+            circleSize: 38,
+            color: ZainaPalette.brickRed,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ChannelChip extends StatelessWidget {
-  const _ChannelChip({required this.name, required this.icon});
-  final String name;
-  final String? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: ZainaPalette.postboxGreen.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '${icon ?? ''} $name',
-        style: const TextStyle(
-          color: ZainaPalette.postboxGreenDeep,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
         ),
-      ),
+      ],
     );
   }
 }
 
-class _MiniSignboard extends StatelessWidget {
-  const _MiniSignboard({required this.title, required this.channelName});
-  final String title;
+class _SignboardArt extends StatelessWidget {
+  const _SignboardArt({required this.chars, required this.channelName});
+  final List<String> chars;
   final String channelName;
 
-  /// Strip whitespace and pick the first 2-3 visible characters for the
-  /// bubble-tea stamp, matching the deck's 招牌看板 stamp pattern.
-  List<String> _stampChars() {
-    final cleaned = title.runes
-        .map((r) => String.fromCharCode(r))
-        .where((c) => c.trim().isNotEmpty)
-        .toList();
-    return cleaned.take(3).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Pick palette per channel name hash so cards differ subtly. Two flavours:
-    // brick on cream, or postbox green on cream.
     final useGreen = channelName.codeUnits.fold(0, (a, b) => a + b) % 2 == 0;
     final accent =
         useGreen ? ZainaPalette.postboxGreen : ZainaPalette.brickRed;
-    final stamp = _stampChars();
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      height: 160,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: accent.withValues(alpha: 0.4)),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            accent.withValues(alpha: 0.20),
+            accent.withValues(alpha: 0.10),
+          ],
+        ),
       ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: SunRayBackground(
-              maxRadius: 200,
-              color: accent,
-              rayCount: 18,
-              child: const SizedBox.shrink(),
-            ),
+      child: SunRayBackground(
+        maxRadius: 220,
+        rayCount: 18,
+        color: accent,
+        child: Center(
+          child: BubbleTeaStamp(
+            chars: chars,
+            circleSize: 40,
+            color: accent,
           ),
-          Center(
-            child: BubbleTeaStamp(
-              chars: stamp,
-              circleSize: 44,
-              color: accent,
-            ),
-          ),
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 8,
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: accent,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Body extends StatelessWidget {
-  const _Body({required this.post});
-  final FeedPost post;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 6),
-      child: Text(
-        post.body,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: ZainaPalette.inkBlack,
-          fontSize: 14,
-          height: 1.4,
         ),
       ),
     );
   }
 }
 
-class _Footer extends StatelessWidget {
-  const _Footer({required this.post});
+class _CardFooter extends StatelessWidget {
+  const _CardFooter({required this.post});
   final FeedPost post;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Icon(
+                Icons.remove_red_eye_outlined,
+                size: 12,
+                color: ZainaPalette.bobaBrownDeep,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                '${post.commentCount * 7 + post.likeCount * 3 + 5}',
+                style: const TextStyle(
+                  color: ZainaPalette.bobaBrownDeep,
+                  fontSize: 11,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Icon(
+                post.likedByMe ? Icons.favorite : Icons.favorite_border,
+                size: 12,
+                color: post.likedByMe
+                    ? ZainaPalette.brickRed
+                    : ZainaPalette.bobaBrownDeep,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                '${post.likeCount}',
+                style: const TextStyle(
+                  color: ZainaPalette.bobaBrownDeep,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           Text(
-            post.author.nickname,
+            '#${post.channel.name}  #${post.city}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: ZainaPalette.bobaBrownDeep,
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Spacer(),
-          Icon(
-            post.likedByMe ? Icons.favorite : Icons.favorite_border,
-            size: 14,
-            color: post.likedByMe
-                ? ZainaPalette.brickRed
-                : ZainaPalette.bobaBrownDeep,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${post.likeCount}',
-            style: const TextStyle(
-              color: ZainaPalette.bobaBrownDeep,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Icon(
-            Icons.mode_comment_outlined,
-            size: 14,
-            color: ZainaPalette.bobaBrownDeep,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${post.commentCount}',
-            style: const TextStyle(
-              color: ZainaPalette.bobaBrownDeep,
-              fontSize: 12,
             ),
           ),
         ],
