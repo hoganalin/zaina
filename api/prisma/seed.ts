@@ -157,6 +157,13 @@ async function main() {
       rotation += 1;
       // Stagger createdAt so list order is meaningful (newer posts first across the seed).
       const minutesAgo = postCount * 17;
+      // Half the posts get a deterministic Picsum photo so the feed has both
+      // image-flavour and signboard-flavour cards (deck shows the masonry as
+      // a mixed wall, never all signboards).
+      const imageUrl =
+        postCount % 2 === 0
+          ? `https://picsum.photos/seed/zaina-${postCount}/640/640`
+          : null;
       await prisma.post.create({
         data: {
           authorId: author.id,
@@ -165,6 +172,7 @@ async function main() {
           body: posts[i].body,
           city: author.city!,
           country: author.country!,
+          imageUrl,
           createdAt: new Date(baseTime - minutesAgo * 60_000),
         },
       });
