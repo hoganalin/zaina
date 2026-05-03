@@ -81,14 +81,11 @@ class SignboardCard extends StatelessWidget {
     final hasImage = post.imageUrl != null && post.imageUrl!.isNotEmpty;
     final hash = _hash();
 
-    // If post has an image, prefer the two image-based templates; if not,
-    // pick from the four signboard templates.
-    int template;
-    if (hasImage) {
-      template = hash % 2 == 0 ? 0 : 1;
-    } else {
-      template = 2 + (hash % 4); // 2..5
-    }
+    // Cycle through all six templates regardless of image. Templates 2/3/4/5
+    // either ignore the image or fold it in (yellow signboard uses it as a
+    // thumbnail inset). This keeps the masonry wall genuinely varied even
+    // when every post happens to have an image.
+    final template = hash % 6;
 
     final sticker = _stickerChar(post);
     final stack = _stackChars(post.title);
@@ -113,25 +110,41 @@ class SignboardCard extends StatelessWidget {
                 AspectRatio(
                   aspectRatio: _aspectRatio(template),
                   child: switch (template) {
-                    0 => _MultiStackOnImage(
-                        imageUrl: post.imageUrl!,
-                        chars: stack,
-                      ),
-                    1 => _StickerCaptionOnImage(
-                        imageUrl: post.imageUrl!,
-                        sticker: sticker,
+                    0 => hasImage
+                        ? _MultiStackOnImage(
+                            imageUrl: post.imageUrl!,
+                            chars: stack,
+                          )
+                        : _GreenPanel(sticker: sticker, title: post.title),
+                    1 => hasImage
+                        ? _StickerCaptionOnImage(
+                            imageUrl: post.imageUrl!,
+                            sticker: sticker,
+                            title: post.title,
+                          )
+                        : _SpeechBubbleOnPaper(
+                            sticker: sticker,
+                            title: post.title,
+                          ),
+                    2 => _SunburstBigText(
                         title: post.title,
+                        imageUrl: post.imageUrl,
                       ),
-                    2 => _SunburstBigText(title: post.title),
                     3 => _YellowSignboard(
                         title: post.title,
                         label: '特別話題',
+                        imageUrl: post.imageUrl,
                       ),
                     4 => _SpeechBubbleOnPaper(
                         sticker: sticker,
                         title: post.title,
+                        imageUrl: post.imageUrl,
                       ),
-                    _ => _GreenPanel(sticker: sticker, title: post.title),
+                    _ => _GreenPanel(
+                        sticker: sticker,
+                        title: post.title,
+                        imageUrl: post.imageUrl,
+                      ),
                   },
                 ),
                 _CardFooter(post: post),
@@ -230,11 +243,12 @@ class _StickerCaptionOnImage extends StatelessWidget {
   }
 }
 
-// ---------- 2. solid red + sunburst + big bare text ----------
+// ---------- 2. solid red + sunburst + big bare text (optional image bg) ----------
 
 class _SunburstBigText extends StatelessWidget {
-  const _SunburstBigText({required this.title});
+  const _SunburstBigText({required this.title, this.imageUrl});
   final String title;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -243,6 +257,15 @@ class _SunburstBigText extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          if (imageUrl != null)
+            Opacity(
+              opacity: 0.35,
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: _imgFallback,
+              ),
+            ),
           SunRayBackground(
             color: ZainaPalette.goldSparkle,
             rayCount: 24,
@@ -279,12 +302,17 @@ class _SunburstBigText extends StatelessWidget {
   }
 }
 
-// ---------- 3. yellow signboard with red border + category label ----------
+// ---------- 3. yellow signboard with red border + category label + thumb ----------
 
 class _YellowSignboard extends StatelessWidget {
-  const _YellowSignboard({required this.title, required this.label});
+  const _YellowSignboard({
+    required this.title,
+    required this.label,
+    this.imageUrl,
+  });
   final String title;
   final String label;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -317,10 +345,27 @@ class _YellowSignboard extends StatelessWidget {
                 ),
               ),
             ),
+            if (imageUrl != null) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: AspectRatio(
+                    aspectRatio: 1.6,
+                    child: Image.network(
+                      imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: _imgFallback,
+                    ),
+                  ),
+                ),
+              ),
+            ],
             Expanded(
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Text(
                     title,
                     maxLines: 3,
@@ -328,7 +373,7 @@ class _YellowSignboard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: ZainaPalette.brickRedDeep,
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w900,
                       height: 1.3,
                     ),
@@ -343,12 +388,17 @@ class _YellowSignboard extends StatelessWidget {
   }
 }
 
-// ---------- 4. paper + sticker + speech-bubble title ----------
+// ---------- 4. paper + sticker + speech-bubble title (optional image bg) ----------
 
 class _SpeechBubbleOnPaper extends StatelessWidget {
-  const _SpeechBubbleOnPaper({required this.sticker, required this.title});
+  const _SpeechBubbleOnPaper({
+    required this.sticker,
+    required this.title,
+    this.imageUrl,
+  });
   final String sticker;
   final String title;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -357,6 +407,15 @@ class _SpeechBubbleOnPaper extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          if (imageUrl != null)
+            Opacity(
+              opacity: 0.4,
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: _imgFallback,
+              ),
+            ),
           SunRayBackground(
             color: ZainaPalette.brickRed.withValues(alpha: 0.18),
             rayCount: 18,
@@ -405,12 +464,17 @@ class _SpeechBubbleOnPaper extends StatelessWidget {
   }
 }
 
-// ---------- 5. green panel + sticker + cream caption ----------
+// ---------- 5. green panel + sticker + cream caption (optional image bg) ----------
 
 class _GreenPanel extends StatelessWidget {
-  const _GreenPanel({required this.sticker, required this.title});
+  const _GreenPanel({
+    required this.sticker,
+    required this.title,
+    this.imageUrl,
+  });
   final String sticker;
   final String title;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -428,6 +492,15 @@ class _GreenPanel extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          if (imageUrl != null)
+            Opacity(
+              opacity: 0.35,
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: _imgFallback,
+              ),
+            ),
           SunRayBackground(
             color: ZainaPalette.goldSparkle.withValues(alpha: 0.5),
             rayCount: 16,

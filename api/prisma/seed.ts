@@ -157,13 +157,10 @@ async function main() {
       rotation += 1;
       // Stagger createdAt so list order is meaningful (newer posts first across the seed).
       const minutesAgo = postCount * 17;
-      // Half the posts get a deterministic Picsum photo so the feed has both
-      // image-flavour and signboard-flavour cards (deck shows the masonry as
-      // a mixed wall, never all signboards).
-      const imageUrl =
-        postCount % 2 === 0
-          ? `https://picsum.photos/seed/zaina-${postCount}/640/640`
-          : null;
+      // Every post gets a deterministic Picsum photo. The card layer still
+      // mixes templates per post.id hash, but at least every cell has
+      // imagery so the wall doesn't feel bare.
+      const imageUrl = `https://picsum.photos/seed/zaina-${postCount}/640/640`;
       await prisma.post.create({
         data: {
           authorId: author.id,
