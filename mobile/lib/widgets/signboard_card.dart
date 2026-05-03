@@ -661,29 +661,31 @@ class _CardFooter extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.remove_red_eye_outlined,
-                  size: 12, color: ZainaPalette.bobaBrownDeep),
-              const SizedBox(width: 3),
+                  size: 14, color: ZainaPalette.bobaBrownDeep),
+              const SizedBox(width: 4),
               Text(
                 '${post.commentCount * 7 + post.likeCount * 3 + 5}',
                 style: const TextStyle(
                   color: ZainaPalette.bobaBrownDeep,
-                  fontSize: 11,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Icon(
                 post.likedByMe ? Icons.favorite : Icons.favorite_border,
-                size: 12,
+                size: 14,
                 color: post.likedByMe
                     ? ZainaPalette.brickRed
                     : ZainaPalette.bobaBrownDeep,
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: 4),
               Text(
                 '${post.likeCount}',
                 style: const TextStyle(
                   color: ZainaPalette.bobaBrownDeep,
-                  fontSize: 11,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -711,17 +713,17 @@ class _HashtagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
         '#$label',
         style: TextStyle(
           color: color,
-          fontSize: 10,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
         ),
       ),

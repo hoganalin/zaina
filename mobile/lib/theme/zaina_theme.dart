@@ -255,10 +255,10 @@ ThemeData buildZainaTheme() {
       indicatorColor: ZainaPalette.brickRed.withValues(alpha: 0.18),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         return TextStyle(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: states.contains(WidgetState.selected)
-              ? FontWeight.w700
-              : FontWeight.w500,
+              ? FontWeight.w800
+              : FontWeight.w600,
           color: states.contains(WidgetState.selected)
               ? ZainaPalette.brickRedDeep
               : ZainaPalette.bobaBrownDeep,
