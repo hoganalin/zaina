@@ -37,7 +37,7 @@ class ZainaLogo extends StatelessWidget {
           Text(
             'ZAINA',
             style: TextStyle(
-              color: ZainaPalette.postboxGreen,
+              color: ZainaPalette.brickRedDeep,
               fontSize: size * 0.32,
               fontWeight: FontWeight.w900,
               letterSpacing: size * 0.06,
@@ -60,12 +60,12 @@ class _LogoCircle extends StatelessWidget {
       height: size,
       width: size,
       decoration: BoxDecoration(
-        color: ZainaPalette.logoBrown,
+        color: ZainaPalette.brickRed,
         shape: BoxShape.circle,
         border: Border.all(color: ZainaPalette.paperCream, width: size * 0.06),
         boxShadow: [
           BoxShadow(
-            color: ZainaPalette.brickRedDeep.withValues(alpha: 0.3),
+            color: ZainaPalette.brickRedDeep.withValues(alpha: 0.35),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

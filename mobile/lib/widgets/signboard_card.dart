@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/feed_post.dart';
 import '../theme/zaina_theme.dart';
+import 'sun_ray_background.dart';
 
 /// 招牌看板-styled post card. If the post has imageUrl, render image-flavour;
 /// otherwise render solid-colour signboard with the post title in bubble-tea
@@ -123,6 +124,16 @@ class _MiniSignboard extends StatelessWidget {
   final String title;
   final String channelName;
 
+  /// Strip whitespace and pick the first 2-3 visible characters for the
+  /// bubble-tea stamp, matching the deck's 招牌看板 stamp pattern.
+  List<String> _stampChars() {
+    final cleaned = title.runes
+        .map((r) => String.fromCharCode(r))
+        .where((c) => c.trim().isNotEmpty)
+        .toList();
+    return cleaned.take(3).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Pick palette per channel name hash so cards differ subtly. Two flavours:
@@ -130,24 +141,49 @@ class _MiniSignboard extends StatelessWidget {
     final useGreen = channelName.codeUnits.fold(0, (a, b) => a + b) % 2 == 0;
     final accent =
         useGreen ? ZainaPalette.postboxGreen : ZainaPalette.brickRed;
+    final stamp = _stampChars();
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      height: 160,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
+        color: accent.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: accent.withValues(alpha: 0.4)),
       ),
-      child: Text(
-        title,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: accent,
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          height: 1.3,
-        ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: SunRayBackground(
+              maxRadius: 200,
+              color: accent,
+              rayCount: 18,
+              child: const SizedBox.shrink(),
+            ),
+          ),
+          Center(
+            child: BubbleTeaStamp(
+              chars: stamp,
+              circleSize: 44,
+              color: accent,
+            ),
+          ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 8,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: accent,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

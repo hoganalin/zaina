@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/zaina_theme.dart';
 import '../../widgets/paper_background.dart';
+import '../../widgets/sun_ray_background.dart';
 import '../../widgets/zaina_logo.dart';
 import 'auth_providers.dart';
 
@@ -27,20 +28,27 @@ class SignInScreen extends ConsumerWidget {
             child: Column(
               children: [
                 const Spacer(flex: 2),
-                const ZainaLogo(size: 110),
-                const SizedBox(height: 18),
+                SizedBox(
+                  height: 220,
+                  child: SunRayBackground(
+                    rayCount: 24,
+                    maxRadius: 220,
+                    child: const ZainaLogo(size: 100),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 const Text(
                   '在海外也能感受到台灣人情味',
                   style: TextStyle(
                     color: ZainaPalette.bobaBrownDeep,
-                    fontSize: 14,
+                    fontSize: 13,
                     letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 const Text(
                   '🧋  🧋  🧋',
-                  style: TextStyle(fontSize: 28, letterSpacing: 8),
+                  style: TextStyle(fontSize: 32, letterSpacing: 6),
                 ),
                 const Spacer(flex: 3),
                 _ProviderButton(

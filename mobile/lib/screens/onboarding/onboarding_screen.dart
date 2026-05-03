@@ -7,6 +7,7 @@ import '../../models/interest.dart';
 import '../../models/self_view.dart';
 import '../../theme/zaina_theme.dart';
 import '../../widgets/paper_background.dart';
+import '../../widgets/sun_ray_background.dart';
 import '../../widgets/zaina_logo.dart';
 import '../sign_in/auth_providers.dart';
 
@@ -647,22 +648,33 @@ class OnboardingDoneScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(flex: 2),
-              const WelcomeSignboard(size: 56),
-              const SizedBox(height: 28),
+              SizedBox(
+                height: 200,
+                child: SunRayBackground(
+                  maxRadius: 200,
+                  child: const WelcomeSignboard(size: 50),
+                ),
+              ),
+              const SizedBox(height: 16),
               const Text(
-                '恭喜您完成設定',
+                '哩厚！歡迎回家',
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
                   color: ZainaPalette.inkBlack,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                '開始您尋找夥伴的旅程吧！',
-                style: TextStyle(
-                  color: ZainaPalette.bobaBrownDeep,
-                  fontSize: 14,
+              const SizedBox(height: 6),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 36),
+                child: Text(
+                  '說不定能交到相伴一生的好友喔！',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: ZainaPalette.bobaBrownDeep,
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
                 ),
               ),
               const Spacer(flex: 3),
