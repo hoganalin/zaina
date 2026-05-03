@@ -160,7 +160,7 @@ async function main() {
       // Every post gets a deterministic Picsum photo. The card layer still
       // mixes templates per post.id hash, but at least every cell has
       // imagery so the wall doesn't feel bare.
-      const imageUrl = `https://picsum.photos/seed/zaina-${postCount}/640/640`;
+      const imageUrl = `https://picsum.photos/seed/zaina-${postCount}/360/360`;
       await prisma.post.create({
         data: {
           authorId: author.id,

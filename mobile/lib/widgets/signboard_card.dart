@@ -169,7 +169,7 @@ class _MultiStackOnImage extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: _imgFallback),
+        Image.network(imageUrl, fit: BoxFit.cover, cacheWidth: 360, cacheHeight: 360, errorBuilder: _imgFallback),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -218,7 +218,7 @@ class _StickerCaptionOnImage extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: _imgFallback),
+        Image.network(imageUrl, fit: BoxFit.cover, cacheWidth: 360, cacheHeight: 360, errorBuilder: _imgFallback),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -262,6 +262,8 @@ class _SunburstBigText extends StatelessWidget {
             Image.network(
               imageUrl!,
               fit: BoxFit.cover,
+              cacheWidth: 360,
+              cacheHeight: 360,
               errorBuilder: _imgFallback,
             )
           else
@@ -366,10 +368,12 @@ class _YellowSignboard extends StatelessWidget {
                   child: AspectRatio(
                     aspectRatio: 1.6,
                     child: Image.network(
-                      imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: _imgFallback,
-                    ),
+              imageUrl!,
+              fit: BoxFit.cover,
+              cacheWidth: 360,
+              cacheHeight: 360,
+              errorBuilder: _imgFallback,
+            ),
                   ),
                 ),
               ),
@@ -424,6 +428,8 @@ class _SpeechBubbleOnPaper extends StatelessWidget {
             Image.network(
               imageUrl!,
               fit: BoxFit.cover,
+              cacheWidth: 360,
+              cacheHeight: 360,
               errorBuilder: _imgFallback,
             )
           else
@@ -513,6 +519,8 @@ class _GreenPanel extends StatelessWidget {
             Image.network(
               imageUrl!,
               fit: BoxFit.cover,
+              cacheWidth: 360,
+              cacheHeight: 360,
               errorBuilder: _imgFallback,
             )
           else
