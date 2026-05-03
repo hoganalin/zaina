@@ -17,6 +17,7 @@ class SelfView with _$SelfView {
   const factory SelfView({
     required String id,
     required String nickname,
+    String? username,
     Gender? gender,
     String? country,
     String? city,

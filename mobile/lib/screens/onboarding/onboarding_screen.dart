@@ -5,6 +5,9 @@ import '../../api/onboarding_api.dart';
 import '../../models/channel.dart';
 import '../../models/interest.dart';
 import '../../models/self_view.dart';
+import '../../theme/zaina_theme.dart';
+import '../../widgets/paper_background.dart';
+import '../../widgets/zaina_logo.dart';
 import '../sign_in/auth_providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -79,69 +82,170 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final isSubmitting = authState.isLoading;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('歡迎 (${_step + 1}/3)'),
-        leading: _step == 0
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _back,
+      body: PaperBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              _StepHeader(step: _step, onBack: _step == 0 ? null : _back),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (i) => setState(() => _step = i),
+                  children: [
+                    _ProfileStep(
+                      nicknameCtrl: _nicknameCtrl,
+                      countryCtrl: _countryCtrl,
+                      cityCtrl: _cityCtrl,
+                      gender: _gender,
+                      onGenderChanged: (g) => setState(() => _gender = g),
+                      onChanged: () => setState(() {}),
+                    ),
+                    _InterestsStep(
+                      selectedIds: _interestIds,
+                      onToggle: (id) => setState(() {
+                        if (!_interestIds.add(id)) _interestIds.remove(id);
+                      }),
+                    ),
+                    _ChannelsStep(
+                      selectedIds: _channelIds,
+                      onToggle: (id) => setState(() {
+                        if (!_channelIds.add(id)) _channelIds.remove(id);
+                      }),
+                    ),
+                  ],
+                ),
               ),
-      ),
-      body: Column(
-        children: [
-          LinearProgressIndicator(value: (_step + 1) / 3),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (i) => setState(() => _step = i),
-              children: [
-                _ProfileStep(
-                  nicknameCtrl: _nicknameCtrl,
-                  countryCtrl: _countryCtrl,
-                  cityCtrl: _cityCtrl,
-                  gender: _gender,
-                  onGenderChanged: (g) => setState(() => _gender = g),
-                  onChanged: () => setState(() {}),
+              if (authState.hasError)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    '送出失敗：${authState.error}',
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                  ),
                 ),
-                _InterestsStep(
-                  selectedIds: _interestIds,
-                  onToggle: (id) => setState(() {
-                    if (!_interestIds.add(id)) _interestIds.remove(id);
-                  }),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : _step < 2
+                            ? (_canSubmit || _step != 0 ? _next : null)
+                            : (_canSubmit ? _submit : null),
+                    child: Text(
+                      _step < 2 ? '下一步' : (isSubmitting ? '送出中…' : '完成'),
+                    ),
+                  ),
                 ),
-                _ChannelsStep(
-                  selectedIds: _channelIds,
-                  onToggle: (id) => setState(() {
-                    if (!_channelIds.add(id)) _channelIds.remove(id);
-                  }),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          if (authState.hasError)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                '送出失敗：${authState.error}',
-                style: const TextStyle(color: Colors.red),
+        ),
+      ),
+    );
+  }
+}
+
+class _StepHeader extends StatelessWidget {
+  const _StepHeader({required this.step, required this.onBack});
+  final int step;
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = ['帳號驗證', '身份驗證', '個人資料'];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 18),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                color: ZainaPalette.inkBlack,
+                onPressed: onBack,
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: isSubmitting
-                    ? null
-                    : _step < 2
-                        ? (_canSubmit || _step != 0 ? _next : null)
-                        : (_canSubmit ? _submit : null),
-                child: Text(
-                  _step < 2 ? '下一步' : (isSubmitting ? '送出中…' : '完成'),
+              const Spacer(),
+              const Text(
+                '在哪 ZAINA',
+                style: TextStyle(
+                  color: ZainaPalette.brickRedDeep,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
                 ),
               ),
+              const Spacer(),
+              const SizedBox(width: 48),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(
+              children: List.generate(labels.length, (i) {
+                final isActive = i == step;
+                final isDone = i < step;
+                final color = isDone
+                    ? ZainaPalette.postboxGreen
+                    : isActive
+                        ? ZainaPalette.brickRed
+                        : ZainaPalette.bobaBrown;
+                return Expanded(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          if (i > 0)
+                            Expanded(
+                              child: Container(
+                                height: 2,
+                                color: i <= step
+                                    ? ZainaPalette.postboxGreen
+                                    : ZainaPalette.bobaBrown.withValues(alpha: 0.3),
+                              ),
+                            ),
+                          Container(
+                            width: 18,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              color:
+                                  isDone ? ZainaPalette.postboxGreen : Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: color, width: 2),
+                            ),
+                            child: isDone
+                                ? const Icon(Icons.check,
+                                    size: 12, color: Colors.white)
+                                : null,
+                          ),
+                          if (i < labels.length - 1)
+                            Expanded(
+                              child: Container(
+                                height: 2,
+                                color: i < step
+                                    ? ZainaPalette.postboxGreen
+                                    : ZainaPalette.bobaBrown.withValues(alpha: 0.3),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        labels[i],
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight:
+                              isActive ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ),
           ),
         ],
@@ -170,29 +274,32 @@ class _ProfileStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       children: [
         const Text(
-          '說一下你自己',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          '哩厚！說一下你自己',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: ZainaPalette.inkBlack,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          '認親第一步就是認家鄉呀～',
+          style: TextStyle(color: ZainaPalette.bobaBrownDeep, fontSize: 13),
         ),
         const SizedBox(height: 24),
         TextField(
           controller: nicknameCtrl,
-          decoration: const InputDecoration(
-            labelText: '暱稱（必填）',
-            border: OutlineInputBorder(),
-          ),
+          decoration: const InputDecoration(labelText: '暱稱（必填）'),
           onChanged: (_) => onChanged(),
           maxLength: 40,
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<Gender>(
           initialValue: gender,
-          decoration: const InputDecoration(
-            labelText: '性別（選填）',
-            border: OutlineInputBorder(),
-          ),
+          decoration: const InputDecoration(labelText: '性別（選填）'),
           items: const [
             DropdownMenuItem(value: Gender.male, child: Text('男')),
             DropdownMenuItem(value: Gender.female, child: Text('女')),
@@ -201,20 +308,24 @@ class _ProfileStep extends StatelessWidget {
           onChanged: onGenderChanged,
         ),
         const SizedBox(height: 16),
-        TextField(
-          controller: countryCtrl,
-          decoration: const InputDecoration(
-            labelText: '居住國家（選填）',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: cityCtrl,
-          decoration: const InputDecoration(
-            labelText: '居住城市（選填）',
-            border: OutlineInputBorder(),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: countryCtrl,
+                decoration: const InputDecoration(labelText: '國家'),
+                onChanged: (_) => onChanged(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: cityCtrl,
+                decoration: const InputDecoration(labelText: '城市'),
+                onChanged: (_) => onChanged(),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -244,15 +355,23 @@ class _InterestsStep extends ConsumerWidget {
             .where((i) => i.category == InterestCategory.staticCategory)
             .toList();
         return ListView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           children: [
             const Text(
               '你喜歡什麼？',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: ZainaPalette.inkBlack,
+              ),
             ),
             const SizedBox(height: 24),
             if (active.isNotEmpty) ...[
-              const Text('動態類', style: TextStyle(fontWeight: FontWeight.w500)),
+              const Text('動態類',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: ZainaPalette.brickRedDeep,
+                  )),
               const SizedBox(height: 8),
               _ChipWrap(
                 items: active,
@@ -262,7 +381,11 @@ class _InterestsStep extends ConsumerWidget {
               const SizedBox(height: 24),
             ],
             if (staticInterests.isNotEmpty) ...[
-              const Text('靜態類', style: TextStyle(fontWeight: FontWeight.w500)),
+              const Text('靜態類',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: ZainaPalette.brickRedDeep,
+                  )),
               const SizedBox(height: 8),
               _ChipWrap(
                 items: staticInterests,
@@ -322,11 +445,15 @@ class _ChannelsStep extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('載入看板失敗：$e')),
       data: (channels) => ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
           const Text(
-            '你想關注哪些看板？',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+            '想關注哪些看板？',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: ZainaPalette.inkBlack,
+            ),
           ),
           const SizedBox(height: 24),
           ...channels.map((ch) => _ChannelTile(
@@ -354,12 +481,62 @@ class _ChannelTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
       child: CheckboxListTile(
         value: selected,
         onChanged: (_) => onToggle(),
-        title: Text(channel.name),
+        title: Text('${channel.icon ?? ''}  ${channel.name}'),
         subtitle: channel.description == null ? null : Text(channel.description!),
+      ),
+    );
+  }
+}
+
+/// Standalone "歡迎光臨" finish screen — pushed after submitOnboarding succeeds
+/// so the router naturally redirects to /home and we stop here briefly.
+class OnboardingDoneScreen extends StatelessWidget {
+  const OnboardingDoneScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PaperBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
+              const WelcomeSignboard(size: 56),
+              const SizedBox(height: 28),
+              const Text(
+                '恭喜您完成設定',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: ZainaPalette.inkBlack,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '開始您尋找夥伴的旅程吧！',
+                style: TextStyle(
+                  color: ZainaPalette.bobaBrownDeep,
+                  fontSize: 14,
+                ),
+              ),
+              const Spacer(flex: 3),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    child: const Text('開啟探索'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
       ),
     );
   }

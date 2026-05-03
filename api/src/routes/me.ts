@@ -21,9 +21,16 @@ meRoutes.get('/', (c) => {
   return c.json({ user: stripFirebaseUid(c.var.user) });
 });
 
+const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+
 const profileEditSchema = z
   .object({
     nickname: z.string().min(1).max(40).optional(),
+    username: z
+      .string()
+      .regex(usernameRegex, 'username must be 3-20 chars, letters/digits/_')
+      .nullable()
+      .optional(),
     gender: z.enum(['male', 'female', 'non_binary']).nullable().optional(),
     country: z.string().min(1).max(80).nullable().optional(),
     city: z.string().min(1).max(80).nullable().optional(),
@@ -32,14 +39,45 @@ const profileEditSchema = z
   })
   .strict();
 
+meRoutes.get('/check-username', async (c) => {
+  const u = c.req.query('u') ?? '';
+  if (!usernameRegex.test(u)) {
+    return c.json({ available: false, reason: 'invalid_format' });
+  }
+  const existing = await prisma.user.findUnique({
+    where: { username: u },
+    select: { id: true },
+  });
+  const taken = existing !== null && existing.id !== c.var.userId;
+  return c.json({ available: !taken });
+});
+
 meRoutes.patch('/', zValidator('json', profileEditSchema), async (c) => {
   const userId = c.var.userId;
   const data = c.req.valid('json');
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data,
-  });
-  return c.json({ user: stripFirebaseUid(updated) });
+
+  if (data.username) {
+    const owned = await prisma.user.findUnique({
+      where: { username: data.username },
+      select: { id: true },
+    });
+    if (owned && owned.id !== userId) {
+      return c.json({ error: 'username_taken' }, 409);
+    }
+  }
+
+  try {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    return c.json({ user: stripFirebaseUid(updated) });
+  } catch (err) {
+    if ((err as { code?: string }).code === 'P2002') {
+      return c.json({ error: 'username_taken' }, 409);
+    }
+    throw err;
+  }
 });
 
 const pushTokenSchema = z.object({
@@ -62,6 +100,7 @@ meRoutes.patch(
 
 const onboardingSchema = z.object({
   nickname: z.string().min(1).max(40),
+  username: z.string().regex(usernameRegex).optional(),
   gender: z.enum(['male', 'female', 'non_binary']).optional(),
   country: z.string().min(1).max(80).optional(),
   city: z.string().min(1).max(80).optional(),
@@ -93,11 +132,22 @@ meRoutes.patch(
       }
     }
 
+    if (data.username) {
+      const owned = await prisma.user.findUnique({
+        where: { username: data.username },
+        select: { id: true },
+      });
+      if (owned && owned.id !== userId) {
+        return c.json({ error: 'username_taken' }, 409);
+      }
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
         where: { id: userId },
         data: {
           nickname: data.nickname,
+          username: data.username,
           gender: data.gender,
           country: data.country,
           city: data.city,

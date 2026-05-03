@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../theme/zaina_theme.dart';
+import '../../widgets/paper_background.dart';
+import '../../widgets/zaina_logo.dart';
 import 'auth_providers.dart';
 
 class SignInScreen extends ConsumerWidget {
@@ -17,65 +20,143 @@ class SignInScreen extends ConsumerWidget {
     final showApple = !kIsWeb && Platform.isIOS;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                '在哪 ZAINA',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '旅居海外的台灣人，找到彼此',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 48),
-              FilledButton.icon(
-                onPressed: isLoading
-                    ? null
-                    : () => ref.read(authStateProvider.notifier).signInWithGoogle(),
-                icon: const Icon(Icons.g_mobiledata, size: 28),
-                label: const Text('使用 Google 登入'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
-              if (showApple) ...[
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: isLoading
-                      ? null
-                      : () => ref.read(authStateProvider.notifier).signInWithApple(),
-                  icon: const Icon(Icons.apple),
-                  label: const Text('使用 Apple 登入'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+      body: PaperBackground(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
+                const ZainaLogo(size: 110),
+                const SizedBox(height: 18),
+                const Text(
+                  '在海外也能感受到台灣人情味',
+                  style: TextStyle(
+                    color: ZainaPalette.bobaBrownDeep,
+                    fontSize: 14,
+                    letterSpacing: 1.2,
                   ),
                 ),
-              ],
-              if (isLoading) ...[
-                const SizedBox(height: 32),
-                const Center(child: CircularProgressIndicator()),
-              ],
-              if (error != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  '登入失敗：$error',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 12),
+                const Text(
+                  '🧋  🧋  🧋',
+                  style: TextStyle(fontSize: 28, letterSpacing: 8),
                 ),
+                const Spacer(flex: 3),
+                _ProviderButton(
+                  background: const Color(0xFF1877F2),
+                  foreground: Colors.white,
+                  icon: Icons.facebook,
+                  label: 'facebook 登入',
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Facebook 登入需 Firebase Console 啟用 Facebook provider 後才能用 — 暫時請走 Google',
+                              ),
+                            ),
+                          );
+                        },
+                ),
+                const SizedBox(height: 10),
+                _ProviderButton(
+                  background: Colors.white,
+                  foreground: ZainaPalette.inkBlack,
+                  border: ZainaPalette.bobaBrown,
+                  icon: Icons.g_mobiledata,
+                  iconSize: 28,
+                  label: 'google 登入',
+                  onPressed: isLoading
+                      ? null
+                      : () => ref.read(authStateProvider.notifier).signInWithGoogle(),
+                ),
+                if (showApple) ...[
+                  const SizedBox(height: 10),
+                  _ProviderButton(
+                    background: Colors.black,
+                    foreground: Colors.white,
+                    icon: Icons.apple,
+                    label: 'apple 登入',
+                    onPressed: isLoading
+                        ? null
+                        : () => ref.read(authStateProvider.notifier).signInWithApple(),
+                  ),
+                ],
+                if (isLoading) ...[
+                  const SizedBox(height: 24),
+                  const Center(child: CircularProgressIndicator()),
+                ],
+                if (error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    '登入失敗：$error',
+                    style: const TextStyle(color: Colors.red, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    '註冊即表示您同意我們的條款。\n我們絕不會將任何內容發佈到其他平台。',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: ZainaPalette.bobaBrownDeep,
+                      fontSize: 11,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
-            ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProviderButton extends StatelessWidget {
+  const _ProviderButton({
+    required this.background,
+    required this.foreground,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.iconSize = 20,
+    this.border,
+  });
+
+  final Color background;
+  final Color foreground;
+  final Color? border;
+  final IconData icon;
+  final double iconSize;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: iconSize, color: foreground),
+        label: Text(label,
+            style: TextStyle(
+              color: foreground,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            )),
+        style: FilledButton.styleFrom(
+          backgroundColor: background,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+            side: border == null ? BorderSide.none : BorderSide(color: border!, width: 1.4),
           ),
         ),
       ),

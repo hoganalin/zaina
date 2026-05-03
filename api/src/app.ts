@@ -3,10 +3,12 @@ import { logger } from 'hono/logger';
 
 import { authRoutes } from './routes/auth.js';
 import { channelsRoutes } from './routes/channels.js';
+import { companionsRoutes } from './routes/companions.js';
 import { conversationsRoutes } from './routes/conversations.js';
 import { feedRoutes } from './routes/feed.js';
 import { interestsRoutes } from './routes/interests.js';
 import { meRoutes } from './routes/me.js';
+import { notificationsRoutes } from './routes/notifications.js';
 import { postsRoutes } from './routes/posts.js';
 import { usersRoutes } from './routes/users.js';
 import { verificationsRoutes } from './routes/verifications.js';
@@ -33,3 +35,5 @@ app.route('/api/posts', postsRoutes);
 app.route('/api/users', usersRoutes);
 app.route('/api/conversations', conversationsRoutes);
 app.route('/api/verifications', verificationsRoutes);
+app.route('/api/notifications', notificationsRoutes);
+app.route('/api/companions', companionsRoutes);

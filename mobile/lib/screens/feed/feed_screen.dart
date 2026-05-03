@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../api/feed_api.dart';
 import '../../models/feed_post.dart';
+import '../../theme/zaina_theme.dart';
+import '../../widgets/paper_background.dart';
+import '../../widgets/signboard_card.dart';
 import '../sign_in/auth_providers.dart';
 
 class FeedScreen extends ConsumerWidget {
@@ -18,25 +21,49 @@ class FeedScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('在哪 ZAINA'),
-          bottom: TabBar(
-            tabs: [
-              const Tab(text: '我關注'),
-              Tab(text: hasCity ? '同城 · ${user.city}' : '同城'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            _FeedTab(
-              provider: followingFeedProvider,
-              emptyHint: '還沒關注任何看板',
+          title: const Text(
+            '在哪 ZAINA',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2.4,
+              color: ZainaPalette.brickRedDeep,
             ),
-            _FeedTab(
-              provider: cityFeedProvider,
-              emptyHint: '尚未填寫居住城市',
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.dashboard_outlined),
+              tooltip: '看板',
+              onPressed: () => context.push('/channels'),
             ),
           ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: TabBar(
+              indicatorColor: ZainaPalette.brickRed,
+              labelColor: ZainaPalette.brickRedDeep,
+              unselectedLabelColor: ZainaPalette.bobaBrownDeep,
+              labelStyle:
+                  const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              tabs: [
+                const Tab(text: '我關注'),
+                Tab(text: hasCity ? '同城 · ${user.city}' : '同城'),
+              ],
+            ),
+          ),
+        ),
+        body: PaperBackground(
+          child: TabBarView(
+            children: [
+              _FeedTab(
+                provider: followingFeedProvider,
+                emptyHint: '還沒關注任何看板，先去發掘一下',
+              ),
+              _FeedTab(
+                provider: cityFeedProvider,
+                emptyHint: '尚未填寫居住城市，去 我 → 編輯 補上',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -68,105 +95,29 @@ class _FeedTab extends ConsumerWidget {
               children: [
                 const SizedBox(height: 96),
                 Center(
-                  child: Text(
-                    emptyHint,
-                    style: const TextStyle(color: Colors.black45),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Text(
+                      emptyHint,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: ZainaPalette.bobaBrownDeep,
+                      ),
+                    ),
                   ),
                 ),
               ],
             );
           }
-          return ListView.separated(
+          return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: posts.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (context, i) => PostCard(
+            itemBuilder: (context, i) => SignboardCard(
               post: posts[i],
               onTap: () => context.push('/post/${posts[i].id}'),
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class PostCard extends StatelessWidget {
-  const PostCard({super.key, required this.post, required this.onTap});
-
-  final FeedPost post;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  '${post.channel.icon ?? ''}  ${post.channel.name}',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  post.city,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              post.title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              post.body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.black87),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  post.author.nickname,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.black54,
-                  ),
-                ),
-                const Spacer(),
-                Icon(post.likedByMe ? Icons.favorite : Icons.favorite_border,
-                    size: 14, color: post.likedByMe ? Colors.red : Colors.black45),
-                const SizedBox(width: 4),
-                Text('${post.likeCount}',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.black54,
-                    )),
-                const SizedBox(width: 12),
-                Icon(Icons.mode_comment_outlined,
-                    size: 14, color: Colors.black45),
-                const SizedBox(width: 4),
-                Text('${post.commentCount}',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.black54,
-                    )),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

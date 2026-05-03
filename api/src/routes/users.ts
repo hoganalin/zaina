@@ -15,6 +15,7 @@ usersRoutes.use('*', requireAuth);
 const publicUserSelect = {
   id: true,
   nickname: true,
+  username: true,
   gender: true,
   country: true,
   city: true,
@@ -25,6 +26,7 @@ const publicUserSelect = {
 } as const;
 
 usersRoutes.get('/:id', async (c) => {
+  const me = c.var.userId;
   const id = c.req.param('id');
   const user = await prisma.user.findUnique({
     where: { id },
@@ -32,8 +34,22 @@ usersRoutes.get('/:id', async (c) => {
   });
   if (!user) return c.json({ error: 'not_found' }, 404);
 
-  const postCount = await prisma.post.count({ where: { authorId: id } });
-  return c.json({ user: { ...user, postCount } });
+  const [postCount, followerCount, followingCount, isFollowing] = await Promise.all([
+    prisma.post.count({ where: { authorId: id } }),
+    prisma.userFollow.count({ where: { followingId: id } }),
+    prisma.userFollow.count({ where: { followerId: id } }),
+    me === id
+      ? Promise.resolve(false)
+      : prisma.userFollow
+          .findUnique({
+            where: { followerId_followingId: { followerId: me, followingId: id } },
+            select: { followerId: true },
+          })
+          .then((row) => row !== null),
+  ]);
+  return c.json({
+    user: { ...user, postCount, followerCount, followingCount, isFollowing },
+  });
 });
 
 const paginationSchema = z.object({
@@ -110,4 +126,31 @@ usersRoutes.delete('/:id/block', async (c) => {
   const blockedId = c.req.param('id');
   await prisma.block.deleteMany({ where: { blockerId, blockedId } });
   return c.json({ blocked: false });
+});
+
+usersRoutes.post('/:id/follow', async (c) => {
+  const followerId = c.var.userId;
+  const followingId = c.req.param('id');
+  if (followerId === followingId) {
+    return c.json({ error: 'cannot_follow_self' }, 400);
+  }
+  const target = await prisma.user.findUnique({
+    where: { id: followingId },
+    select: { id: true },
+  });
+  if (!target) return c.json({ error: 'not_found' }, 404);
+
+  await prisma.userFollow.upsert({
+    where: { followerId_followingId: { followerId, followingId } },
+    create: { followerId, followingId },
+    update: {},
+  });
+  return c.json({ isFollowing: true });
+});
+
+usersRoutes.delete('/:id/follow', async (c) => {
+  const followerId = c.var.userId;
+  const followingId = c.req.param('id');
+  await prisma.userFollow.deleteMany({ where: { followerId, followingId } });
+  return c.json({ isFollowing: false });
 });

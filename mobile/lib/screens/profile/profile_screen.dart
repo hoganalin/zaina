@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../api/conversations_api.dart';
 import '../../api/users_api.dart';
-import '../feed/feed_screen.dart';
+import '../../widgets/signboard_card.dart';
 import '../sign_in/auth_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -219,7 +219,7 @@ class ProfileScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              child: PostCard(
+                              child: SignboardCard(
                                 post: p,
                                 onTap: () => context.push('/post/${p.id}'),
                               ),

@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'screens/channels/channels_screen.dart';
+import 'screens/companions/companions_screen.dart';
 import 'screens/compose/compose_post_screen.dart';
 import 'screens/conversations/chat_screen.dart';
 import 'screens/conversations/conversations_screen.dart';
 import 'screens/feed/feed_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/post_detail/post_detail_screen.dart';
 import 'screens/profile/edit_profile_screen.dart';
@@ -61,39 +63,41 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _, navigationShell) =>
             ShellScaffold(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/feed',
-                builder: (_, _) => const FeedScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/channels',
-                builder: (_, _) => const ChannelsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/messages',
-                builder: (_, _) => const ConversationsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/me',
-                builder: (_, _) => const _MyProfileTab(),
-              ),
-            ],
-          ),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/feed',
+              builder: (_, _) => const FeedScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/companions',
+              builder: (_, _) => const CompanionsScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/notifications',
+              builder: (_, _) => const NotificationsScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/messages',
+              builder: (_, _) => const ConversationsScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/me',
+              builder: (_, _) => const _MyProfileTab(),
+            ),
+          ]),
         ],
+      ),
+      GoRoute(
+        path: '/channels',
+        builder: (_, _) => const ChannelsScreen(),
       ),
       GoRoute(
         path: '/compose',
