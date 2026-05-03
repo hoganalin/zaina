@@ -56,15 +56,18 @@ class SignboardCard extends StatelessWidget {
     return cleaned.take(3).toList();
   }
 
-  /// Multi-stack stamps only make sense for CJK titles (微/旅/伴).
-  /// English titles like "Hamilton" produce nonsense (H/a/m), so only the
-  /// caption-flavoured templates are used for those.
-  static bool _titleIsCjk(String title) {
-    final firstThree = title.runes
+  /// Multi-stack stamps only make sense for SHORT CJK titles (微/旅/伴) —
+  /// stacking the first 3 chars of a long sentence reads as nonsense, and
+  /// English titles like "Hamilton" produce H/a/m. Use the caption-flavoured
+  /// templates for everything else.
+  static bool _suitsMultiStack(String title) {
+    final cleaned = title.runes
         .map((r) => String.fromCharCode(r))
         .where((c) => c.trim().isNotEmpty)
-        .take(3);
-    return firstThree.every((c) {
+        .toList();
+    if (cleaned.length > 5) return false; // too long
+    if (cleaned.length < 3) return false; // not enough chars to stack
+    return cleaned.take(3).every((c) {
       final code = c.runes.first;
       return code >= 0x4E00 && code <= 0x9FFF;
     });
@@ -104,8 +107,8 @@ class SignboardCard extends StatelessWidget {
     final sticker = _stickerChar(post);
     final stack = _stackChars(post.title);
 
-    // Multi-stack only works for CJK; for non-CJK titles, route to template 1.
-    if (template == 0 && !_titleIsCjk(post.title)) {
+    // Multi-stack only fits short CJK titles; route the rest to template 1.
+    if (template == 0 && !_suitsMultiStack(post.title)) {
       template = 1;
     }
 
