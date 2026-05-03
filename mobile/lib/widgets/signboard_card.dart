@@ -4,25 +4,27 @@ import '../models/feed_post.dart';
 import '../theme/zaina_theme.dart';
 import 'sun_ray_background.dart';
 
-/// 招牌看板-styled post card sized for a 2-column masonry grid.
+/// 招牌看板-styled post card. The deck cycles SIX structurally distinct
+/// templates across the masonry wall, each with a different aspect ratio so
+/// the grid feels hand-curated, not generated. We pick a template by hashing
+/// post.id, so the same post is always the same shape.
 ///
-/// Per the deck, each card has three layers:
-///  1. Background — either a photo (image flavour) or a solid colour with
-///     sun-rays (signboard flavour). Cycles through 4 visual flavours so the
-///     wall feels alive.
-///  2. A small single-character sticker (讚 / 吃 / 哭 / 微 / 旅 etc) in a red
-///     bubble-tea circle, top-left. NOT the title — just a stamp.
-///  3. The actual title in a cream rounded "speech bubble" box, centered
-///     slightly below the middle, with channel-coloured text.
+/// Templates:
+///   0  multiStackStickerOnImage  — image + 3 stamps stacked (微/旅/伴)
+///   1  stickerCaptionOnImage     — image + 1 sticker + cream caption
+///   2  sunburstBigText           — solid red + gold sunburst + big yellow
+///                                  hand-painted text (今天 是我生日!!!)
+///   3  yellowSignboard           — yellow bg + red border + 「特別話題」
+///                                  category label + bold title
+///   4  speechBubbleOnPaper       — paper + corner sticker + cream
+///                                  speech-bubble title (人也太多了吧!!)
+///   5  greenPanelStickerCaption  — green panel + sun-ray + sticker + caption
 class SignboardCard extends StatelessWidget {
   const SignboardCard({super.key, required this.post, required this.onTap});
 
   final FeedPost post;
   final VoidCallback onTap;
 
-  /// Pick a single visual sticker character. Channel-driven where it makes
-  /// sense (餐 for food, 賣 for second-hand, etc), falling back to the first
-  /// title character.
   static String _stickerChar(FeedPost p) {
     final byChannel = {
       'food': '吃',
@@ -42,24 +44,55 @@ class SignboardCard extends StatelessWidget {
     if (fromChannel != null) return fromChannel;
     final first = p.title.runes
         .map((r) => String.fromCharCode(r))
-        .firstWhere(
-          (c) => c.trim().isNotEmpty,
-          orElse: () => '在',
-        );
+        .firstWhere((c) => c.trim().isNotEmpty, orElse: () => '在');
     return first;
   }
 
-  /// Cycle through 4 background flavours to break the visual monotony of an
-  /// all-signboard wall. Index = stable hash of post.id.
-  int _flavourIndex() {
-    final h = post.id.codeUnits.fold(0, (a, b) => a + b);
-    return h % 4;
+  static List<String> _stackChars(String title) {
+    final cleaned = title.runes
+        .map((r) => String.fromCharCode(r))
+        .where((c) => c.trim().isNotEmpty)
+        .toList();
+    return cleaned.take(3).toList();
+  }
+
+  int _hash() => post.id.codeUnits.fold(0, (a, b) => a + b);
+
+  /// Aspect ratio per template, varied to give masonry variety.
+  double _aspectRatio(int t) {
+    switch (t) {
+      case 0:
+        return 0.82; // tall — multi-stack stamps
+      case 1:
+        return 1.0; // square
+      case 2:
+        return 1.05; // sunburst — slightly squarer than tall
+      case 3:
+        return 0.78; // yellow signboard — taller (poster shape)
+      case 4:
+        return 0.9; // speech bubble
+      default:
+        return 1.0;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final hasImage = post.imageUrl != null && post.imageUrl!.isNotEmpty;
+    final hash = _hash();
+
+    // If post has an image, prefer the two image-based templates; if not,
+    // pick from the four signboard templates.
+    int template;
+    if (hasImage) {
+      template = hash % 2 == 0 ? 0 : 1;
+    } else {
+      template = 2 + (hash % 4); // 2..5
+    }
+
     final sticker = _stickerChar(post);
+    final stack = _stackChars(post.title);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -69,25 +102,37 @@ class SignboardCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: ZainaPalette.bobaBrown.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: ZainaPalette.bobaBrown.withValues(alpha: 0.3),
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AspectRatio(
-                  aspectRatio: 1,
-                  child: hasImage
-                      ? _ImageFlavour(
-                          imageUrl: post.imageUrl!,
-                          sticker: sticker,
-                          title: post.title,
-                        )
-                      : _SignboardFlavour(
-                          flavour: _flavourIndex(),
-                          sticker: sticker,
-                          title: post.title,
-                        ),
+                  aspectRatio: _aspectRatio(template),
+                  child: switch (template) {
+                    0 => _MultiStackOnImage(
+                        imageUrl: post.imageUrl!,
+                        chars: stack,
+                      ),
+                    1 => _StickerCaptionOnImage(
+                        imageUrl: post.imageUrl!,
+                        sticker: sticker,
+                        title: post.title,
+                      ),
+                    2 => _SunburstBigText(title: post.title),
+                    3 => _YellowSignboard(
+                        title: post.title,
+                        label: '特別話題',
+                      ),
+                    4 => _SpeechBubbleOnPaper(
+                        sticker: sticker,
+                        title: post.title,
+                      ),
+                    _ => _GreenPanel(sticker: sticker, title: post.title),
+                  },
                 ),
                 _CardFooter(post: post),
               ],
@@ -99,8 +144,53 @@ class SignboardCard extends StatelessWidget {
   }
 }
 
-class _ImageFlavour extends StatelessWidget {
-  const _ImageFlavour({
+// ---------- 0. multi-stack stamps on image ----------
+
+class _MultiStackOnImage extends StatelessWidget {
+  const _MultiStackOnImage({required this.imageUrl, required this.chars});
+  final String imageUrl;
+  final List<String> chars;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: _imgFallback),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.black.withValues(alpha: 0.2),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: 12,
+          left: 14,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (int i = 0; i < chars.length; i++) ...[
+                if (i > 0) const SizedBox(height: 6),
+                _Stamp(char: chars[i], size: 36),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------- 1. sticker + cream caption box on image ----------
+
+class _StickerCaptionOnImage extends StatelessWidget {
+  const _StickerCaptionOnImage({
     required this.imageUrl,
     required this.sticker,
     required this.title,
@@ -115,13 +205,7 @@ class _ImageFlavour extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Container(
-            color: ZainaPalette.bobaBrown.withValues(alpha: 0.2),
-          ),
-        ),
+        Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: _imgFallback),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -134,50 +218,22 @@ class _ImageFlavour extends StatelessWidget {
             ),
           ),
         ),
-        Positioned(
-          top: 10,
-          left: 10,
-          child: _StickerCircle(char: sticker),
+        Positioned(top: 10, left: 10, child: _Stamp(char: sticker)),
+        Center(
+          child: _CreamCaption(
+            title: title,
+            accent: ZainaPalette.brickRed,
+          ),
         ),
-        Center(child: _TitleBox(title: title, accent: ZainaPalette.brickRed)),
       ],
     );
   }
 }
 
-class _SignboardFlavour extends StatelessWidget {
-  const _SignboardFlavour({
-    required this.flavour,
-    required this.sticker,
-    required this.title,
-  });
+// ---------- 2. solid red + sunburst + big bare text ----------
 
-  /// 0 = red sunburst (celebration card)
-  /// 1 = green panel
-  /// 2 = yellow signboard with red border (special-topic flag)
-  /// 3 = cream paper with sun-ray (gentle)
-  final int flavour;
-  final String sticker;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    switch (flavour) {
-      case 0:
-        return _RedSunburst(sticker: sticker, title: title);
-      case 1:
-        return _GreenPanel(sticker: sticker, title: title);
-      case 2:
-        return _YellowSignboard(sticker: sticker, title: title);
-      default:
-        return _CreamPaper(sticker: sticker, title: title);
-    }
-  }
-}
-
-class _RedSunburst extends StatelessWidget {
-  const _RedSunburst({required this.sticker, required this.title});
-  final String sticker;
+class _SunburstBigText extends StatelessWidget {
+  const _SunburstBigText({required this.title});
   final String title;
 
   @override
@@ -189,37 +245,31 @@ class _RedSunburst extends StatelessWidget {
         children: [
           SunRayBackground(
             color: ZainaPalette.goldSparkle,
-            rayCount: 22,
-            maxRadius: 220,
+            rayCount: 24,
+            maxRadius: 240,
             child: const SizedBox.shrink(),
           ),
-          Positioned(
-            top: 10,
-            left: 10,
-            child: _StickerCircle(
-              char: sticker,
-              fill: ZainaPalette.goldSparkle,
-              charColor: ZainaPalette.brickRedDeep,
-            ),
-          ),
           Center(
-            child: Text(
-              title,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: ZainaPalette.goldSparkle,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                height: 1.2,
-                shadows: [
-                  Shadow(
-                    color: ZainaPalette.brickRedDeep,
-                    offset: Offset(1, 1),
-                    blurRadius: 0,
-                  ),
-                ],
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Text(
+                title,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: ZainaPalette.goldSparkle,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  height: 1.2,
+                  shadows: [
+                    Shadow(
+                      color: ZainaPalette.brickRedDeep,
+                      offset: Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -228,6 +278,134 @@ class _RedSunburst extends StatelessWidget {
     );
   }
 }
+
+// ---------- 3. yellow signboard with red border + category label ----------
+
+class _YellowSignboard extends StatelessWidget {
+  const _YellowSignboard({required this.title, required this.label});
+  final String title;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: ZainaPalette.paperCream,
+      padding: const EdgeInsets.all(8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: ZainaPalette.goldSparkle.withValues(alpha: 0.35),
+          border: Border.all(color: ZainaPalette.brickRed, width: 2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: ZainaPalette.brickRed,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: ZainaPalette.paperCream,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    title,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: ZainaPalette.brickRedDeep,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- 4. paper + sticker + speech-bubble title ----------
+
+class _SpeechBubbleOnPaper extends StatelessWidget {
+  const _SpeechBubbleOnPaper({required this.sticker, required this.title});
+  final String sticker;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: ZainaPalette.paperCream,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          SunRayBackground(
+            color: ZainaPalette.brickRed.withValues(alpha: 0.18),
+            rayCount: 18,
+            maxRadius: 200,
+            child: const SizedBox.shrink(),
+          ),
+          Positioned(top: 10, right: 10, child: _Stamp(char: sticker)),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: ZainaPalette.cardSurface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: ZainaPalette.brickRed.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  title,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: ZainaPalette.brickRedDeep,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- 5. green panel + sticker + cream caption ----------
 
 class _GreenPanel extends StatelessWidget {
   const _GreenPanel({required this.sticker, required this.title});
@@ -242,7 +420,7 @@ class _GreenPanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            ZainaPalette.postboxGreen.withValues(alpha: 0.92),
+            ZainaPalette.postboxGreen,
             ZainaPalette.postboxGreenDeep,
           ],
         ),
@@ -251,101 +429,31 @@ class _GreenPanel extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           SunRayBackground(
-            color: ZainaPalette.goldSparkle.withValues(alpha: 0.4),
+            color: ZainaPalette.goldSparkle.withValues(alpha: 0.5),
             rayCount: 16,
             maxRadius: 200,
             child: const SizedBox.shrink(),
           ),
-          Positioned(top: 10, left: 10, child: _StickerCircle(char: sticker)),
-          Center(child: _TitleBox(title: title, accent: ZainaPalette.postboxGreenDeep)),
-        ],
-      ),
-    );
-  }
-}
-
-class _YellowSignboard extends StatelessWidget {
-  const _YellowSignboard({required this.sticker, required this.title});
-  final String sticker;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: ZainaPalette.goldSparkle,
-      padding: const EdgeInsets.all(8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: ZainaPalette.goldSparkle.withValues(alpha: 0.3),
-          border: Border.all(color: ZainaPalette.brickRed, width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Positioned(top: 6, left: 6, child: _StickerCircle(char: sticker, size: 28)),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  title,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: ZainaPalette.brickRedDeep,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    height: 1.3,
-                  ),
-                ),
-              ),
+          Positioned(top: 10, left: 10, child: _Stamp(char: sticker)),
+          Center(
+            child: _CreamCaption(
+              title: title,
+              accent: ZainaPalette.postboxGreenDeep,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CreamPaper extends StatelessWidget {
-  const _CreamPaper({required this.sticker, required this.title});
-  final String sticker;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: ZainaPalette.paperCream,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          SunRayBackground(
-            color: ZainaPalette.brickRed.withValues(alpha: 0.18),
-            rayCount: 20,
-            maxRadius: 200,
-            child: const SizedBox.shrink(),
           ),
-          Positioned(top: 10, left: 10, child: _StickerCircle(char: sticker)),
-          Center(child: _TitleBox(title: title, accent: ZainaPalette.brickRedDeep)),
         ],
       ),
     );
   }
 }
 
-class _StickerCircle extends StatelessWidget {
-  const _StickerCircle({
-    required this.char,
-    this.size = 32,
-    this.fill = ZainaPalette.brickRed,
-    this.charColor = ZainaPalette.paperCream,
-  });
+// ---------- shared widgets ----------
+
+class _Stamp extends StatelessWidget {
+  const _Stamp({required this.char, this.size = 32});
 
   final String char;
   final double size;
-  final Color fill;
-  final Color charColor;
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +461,7 @@ class _StickerCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: fill,
+        color: ZainaPalette.brickRed,
         shape: BoxShape.circle,
         border: Border.all(color: ZainaPalette.paperCream, width: 2),
         boxShadow: [
@@ -368,7 +476,7 @@ class _StickerCircle extends StatelessWidget {
         child: Text(
           char,
           style: TextStyle(
-            color: charColor,
+            color: ZainaPalette.paperCream,
             fontSize: size * 0.5,
             fontWeight: FontWeight.w900,
             height: 1,
@@ -379,8 +487,8 @@ class _StickerCircle extends StatelessWidget {
   }
 }
 
-class _TitleBox extends StatelessWidget {
-  const _TitleBox({required this.title, required this.accent});
+class _CreamCaption extends StatelessWidget {
+  const _CreamCaption({required this.title, required this.accent});
   final String title;
   final Color accent;
 
@@ -476,4 +584,8 @@ class _CardFooter extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _imgFallback(BuildContext _, Object _, StackTrace? _) {
+  return Container(color: ZainaPalette.bobaBrown.withValues(alpha: 0.2));
 }
