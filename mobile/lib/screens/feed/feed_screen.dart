@@ -23,13 +23,7 @@ class FeedScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          leadingWidth: 56,
-          leading: const Padding(
-            padding: EdgeInsets.only(left: 12),
-            child: Center(
-              child: Text('🧋', style: TextStyle(fontSize: 28)),
-            ),
-          ),
+          automaticallyImplyLeading: false,
           title: Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
