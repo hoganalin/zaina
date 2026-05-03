@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../api/conversations_api.dart';
 import '../../api/users_api.dart';
+import '../../widgets/paper_background.dart';
 import '../../widgets/signboard_card.dart';
 import '../sign_in/auth_providers.dart';
 
@@ -85,7 +86,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: RefreshIndicator(
+      body: PaperBackground(child: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(publicUserProvider(userId));
           ref.invalidate(userPostsProvider(userId));
@@ -231,7 +232,7 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 }

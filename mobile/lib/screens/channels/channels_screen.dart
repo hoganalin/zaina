@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/channels_api.dart';
+import '../../widgets/paper_background.dart';
 
 class ChannelsScreen extends ConsumerWidget {
   const ChannelsScreen({super.key});
@@ -11,7 +12,7 @@ class ChannelsScreen extends ConsumerWidget {
     final list = ref.watch(channelsListProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('看板')),
-      body: list.when(
+      body: PaperBackground(child: list.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('載入失敗：$e')),
         data: (rows) => RefreshIndicator(
@@ -22,7 +23,7 @@ class ChannelsScreen extends ConsumerWidget {
             itemBuilder: (_, i) => _ChannelRow(row: rows[i]),
           ),
         ),
-      ),
+      )),
     );
   }
 }
