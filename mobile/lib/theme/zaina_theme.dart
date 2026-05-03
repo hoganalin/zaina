@@ -1,17 +1,36 @@
 import 'package:flutter/material.dart';
 
-/// 在哪 ZAINA brand palette + Material 3 theme. See docs/design/visual-spec.md.
+/// 在哪 ZAINA brand palette. Hex values pulled directly from the team's
+/// Figma design system (file JGUawgfQV6xjWlirhpk73y → 顏色（Color）frame).
+/// See docs/design/visual-spec.md for the full token catalogue.
 class ZainaPalette {
-  static const paperCream = Color(0xFFF4ECD8);
-  static const paperCreamSoft = Color(0xFFFAF3E2);
-  static const brickRed = Color(0xFFA23A2D);
-  static const brickRedDeep = Color(0xFF7E2B22);
-  static const postboxGreen = Color(0xFF3A6B43);
-  static const postboxGreenDeep = Color(0xFF2A4F32);
-  static const bobaBrown = Color(0xFF8E6849);
-  static const bobaBrownDeep = Color(0xFF5C4530);
-  static const goldSparkle = Color(0xFFD6B05A);
-  static const inkBlack = Color(0xFF2D2118);
+  // Surface — `base` scale from deck (cream paper background)
+  static const paperCream = Color(0xFFFAF5EC); // base-50/100
+  static const paperCreamSoft = Color(0xFFE8CCA0); // base-200 (rare; soft cards prefer neutral)
+  static const cardSurface = Color(0xFFF6F4F0); // neutral-50, slightly warmer card bg
+
+  // Primary (brick red) — `primary` scale
+  static const brickRed = Color(0xFFAF3737); // primary-700, the headline brick red
+  static const brickRedDeep = Color(0xFF872D2D); // primary-800
+  static const brickRedSoft = Color(0xFFFAE6E6); // primary-100, badge bg
+
+  // Secondary (postbox green) — `secondary` scale
+  static const postboxGreen = Color(0xFF2A522A); // secondary-700, the headline green
+  static const postboxGreenDeep = Color(0xFF1E361E); // secondary-900
+  static const postboxGreenSoft = Color(0xFFE3ECDF); // secondary-100, chip bg
+
+  // Boba brown — `base` scale; the 在/哪 logo circles use base-800
+  static const bobaBrown = Color(0xFF846549); // neutral-600, body emphasis
+  static const bobaBrownDeep = Color(0xFF5B4236); // neutral-800, headings on cream
+  static const logoBrown = Color(0xFF6E3825); // base-800, logo circle fill
+
+  // Accent (gold) — `accent` scale
+  static const goldSparkle = Color(0xFFE9A936); // accent-400, sparkle / highlight
+  static const goldDeep = Color(0xFFC86817); // accent-600
+
+  // Ink — `neutral` scale
+  static const inkBlack = Color(0xFF2C1F1A); // neutral-950
+  static const inkMuted = Color(0xFF6B4F3C); // neutral-700
 
   /// Subtle line color for borders / dividers on cream surfaces.
   static const hairline = Color(0x14000000);
