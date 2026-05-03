@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../theme/zaina_theme.dart';
+
 class ShellScaffold extends StatelessWidget {
   const ShellScaffold({super.key, required this.navigationShell});
 
@@ -22,28 +24,28 @@ class ShellScaffold extends StatelessWidget {
         onDestinationSelected: _onTap,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.local_fire_department_outlined),
-            selectedIcon: Icon(Icons.local_fire_department),
+            icon: _CupTabIcon(emoji: '🧋', selected: false),
+            selectedIcon: _CupTabIcon(emoji: '🧋', selected: true),
             label: '動態',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
+            icon: _CupTabIcon(emoji: '☕', selected: false),
+            selectedIcon: _CupTabIcon(emoji: '☕', selected: true),
             label: '夥伴',
           ),
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
+            icon: _CupTabIcon(emoji: '🍵', selected: false),
+            selectedIcon: _CupTabIcon(emoji: '🍵', selected: true),
             label: '通知',
           ),
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
+            icon: _CupTabIcon(emoji: '🥤', selected: false),
+            selectedIcon: _CupTabIcon(emoji: '🥤', selected: true),
             label: '訊息',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
+            icon: _CupTabIcon(emoji: '🍶', selected: false),
+            selectedIcon: _CupTabIcon(emoji: '🍶', selected: true),
             label: '我',
           ),
         ],
@@ -54,6 +56,31 @@ class ShellScaffold extends StatelessWidget {
               child: const Icon(Icons.edit),
             )
           : null,
+    );
+  }
+}
+
+class _CupTabIcon extends StatelessWidget {
+  const _CupTabIcon({required this.emoji, required this.selected});
+  final String emoji;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: selected
+            ? ZainaPalette.brickRed.withValues(alpha: 0.15)
+            : Colors.transparent,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        emoji,
+        style: const TextStyle(fontSize: 18, height: 1),
+      ),
     );
   }
 }

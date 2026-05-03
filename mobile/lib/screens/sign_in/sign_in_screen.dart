@@ -45,12 +45,13 @@ class SignInScreen extends ConsumerWidget {
                     letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  '🧋  🧋  🧋',
-                  style: TextStyle(fontSize: 32, letterSpacing: 6),
+                const SizedBox(height: 4),
+                Image.asset(
+                  'assets/illustrations/three-cups.png',
+                  height: 140,
+                  fit: BoxFit.contain,
                 ),
-                const Spacer(flex: 3),
+                const Spacer(flex: 2),
                 _ProviderButton(
                   background: const Color(0xFF1877F2),
                   foreground: Colors.white,

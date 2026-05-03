@@ -66,10 +66,101 @@ ThemeData buildZainaTheme() {
     inversePrimary: ZainaPalette.goldSparkle,
   );
 
+  // Typography tokens distilled from the deck's text style frame
+  // (size/h2..h6 + size/text-md / text-lg + Footnote).
+  const textTheme = TextTheme(
+    // Display / hero copy (在哪 logo, splash hero text)
+    displayLarge: TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w900,
+      color: ZainaPalette.inkBlack,
+      height: 1.15,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.w900,
+      color: ZainaPalette.inkBlack,
+      height: 1.2,
+    ),
+    // h2 — onboarding step titles, profile name
+    headlineLarge: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w800,
+      color: ZainaPalette.inkBlack,
+      height: 1.3,
+    ),
+    // h4 — section headers
+    headlineMedium: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w800,
+      color: ZainaPalette.inkBlack,
+      height: 1.35,
+    ),
+    // h5 — card titles
+    headlineSmall: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      color: ZainaPalette.inkBlack,
+      height: 1.35,
+    ),
+    // h6 — group / list titles
+    titleLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: ZainaPalette.inkBlack,
+      height: 1.4,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w600,
+      color: ZainaPalette.inkBlack,
+      height: 1.4,
+    ),
+    // text-lg — primary body
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      color: ZainaPalette.inkBlack,
+      height: 1.5,
+    ),
+    // text-md — secondary body
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      color: ZainaPalette.inkBlack,
+      height: 1.5,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w400,
+      color: ZainaPalette.inkMuted,
+      height: 1.5,
+    ),
+    // labels — buttons, chips
+    labelLarge: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.4,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      color: ZainaPalette.bobaBrownDeep,
+    ),
+    // Footnote — fine print
+    labelSmall: TextStyle(
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
+      color: ZainaPalette.bobaBrownDeep,
+      letterSpacing: 0.2,
+    ),
+  );
+
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: colorScheme,
     scaffoldBackgroundColor: ZainaPalette.paperCream,
+    textTheme: textTheme,
   );
 
   return base.copyWith(

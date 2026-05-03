@@ -661,18 +661,42 @@ class _CardFooter extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            '#${post.channel.name}  #${post.city}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: ZainaPalette.bobaBrownDeep,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              _HashtagChip(label: post.channel.name, color: ZainaPalette.brickRed),
+              _HashtagChip(label: post.city, color: ZainaPalette.postboxGreen),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HashtagChip extends StatelessWidget {
+  const _HashtagChip({required this.label, required this.color});
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        '#$label',
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

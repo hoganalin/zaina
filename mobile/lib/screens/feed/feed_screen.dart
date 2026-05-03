@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../api/channels_api.dart';
 import '../../api/feed_api.dart';
 import '../../models/feed_post.dart';
 import '../../theme/zaina_theme.dart';
@@ -65,20 +66,77 @@ class FeedScreen extends ConsumerWidget {
           ],
         ),
         body: PaperBackground(
-          child: TabBarView(
+          child: Column(
             children: [
-              _FeedTab(
-                provider: followingFeedProvider,
-                emptyHint: '還沒關注任何看板，先去發掘一下',
-              ),
-              _FeedTab(
-                provider: cityFeedProvider,
-                emptyHint: '尚未填寫居住城市，去 我 → 編輯 補上',
+              const _ChannelChipStrip(),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _FeedTab(
+                      provider: followingFeedProvider,
+                      emptyHint: '還沒關注任何看板，先去發掘一下',
+                    ),
+                    _FeedTab(
+                      provider: cityFeedProvider,
+                      emptyHint: '尚未填寫居住城市，去 我 → 編輯 補上',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ChannelChipStrip extends ConsumerWidget {
+  const _ChannelChipStrip();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final channelsAsync = ref.watch(channelsListProvider);
+    return channelsAsync.when(
+      loading: () => const SizedBox(height: 44),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (rows) {
+        // Show followed channels first, otherwise show all
+        final followed = rows.where((r) => r.isFollowing).toList();
+        final display = followed.isNotEmpty ? followed : rows;
+        return SizedBox(
+          height: 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            itemCount: display.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (_, i) {
+              final ch = display[i].channel;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: ZainaPalette.brickRed.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: ZainaPalette.brickRed.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '${ch.icon ?? ''} ${ch.name}',
+                    style: const TextStyle(
+                      color: ZainaPalette.brickRedDeep,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
