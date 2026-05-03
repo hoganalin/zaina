@@ -5,6 +5,7 @@
 [![status](https://img.shields.io/badge/status-v1%20feature%20complete-success)]()
 [![stack](https://img.shields.io/badge/stack-Flutter%20%2B%20Hono%20%2B%20GCP-blue)]()
 [![tests](https://img.shields.io/badge/api%20tests-48%20passing-success)]()
+[![design](https://img.shields.io/badge/design-deck%20aligned-d6a85a)]()
 
 ## Why this project exists
 
@@ -72,13 +73,16 @@ flowchart LR
 
 ```
 zaina/
-├── mobile/         Flutter app (iOS + Android)
-├── api/            Node.js + Hono backend
-├── infra/          docker-compose for local Postgres
-├── docs/adr/       Architecture Decision Records
-├── CONTEXT.md      Domain language and relationships
-├── CLAUDE.md       Instructions for Claude Code (AI pair)
-└── README.md       This file
+├── mobile/                 Flutter app (iOS + Android)
+├── api/                    Node.js + Hono backend
+├── infra/                  docker-compose for local Postgres
+├── docs/adr/               Architecture Decision Records (10 records)
+├── docs/design/            Visual spec, Figma tokens, reference renders
+├── docs/design/reference/  signin / splash / feed / first_login / logo PNGs
+├── CONTEXT.md              Domain language and relationships
+├── CLAUDE.md               Instructions for Claude Code (AI pair)
+├── DEPLOY.md               GCP Cloud Run deploy guide
+└── README.md               This file
 ```
 
 ## Getting started
@@ -132,19 +136,21 @@ Step-by-step Cloud Run deploy in [`DEPLOY.md`](./DEPLOY.md).
 
 ## Demo flow
 
-A reviewer can walk every Sprint in 4–5 minutes:
+A reviewer can walk every Sprint in 4–5 minutes. Bottom nav has five tabs — **動態 / 夥伴 / 通知 / 訊息 / 我** — themed as bubble-tea cup variants per the deck.
 
-1. **Sign in** with a Google account → backend find-or-creates the User row (Sprint 1).
-2. **Onboarding** — pick nickname, city, interests, follow channels (Sprint 2).
-3. **Feed** — switch between **我關注** and **同城** tabs (Sprint 3).
+1. **Sign in** with Google. Splash shows the 在哪 logo + sun-ray + 3-cup illustration cropped from the team's Figma. Backend find-or-creates the User row (Sprint 1).
+2. **Onboarding** — 4 steps: nickname / @username (live availability check) / interests / channels. Finish lands on a 「歡迎光臨」 signboard modal (Sprint 2 + Sprint 9 username step).
+3. **Feed** (動態 tab) — 2-column masonry of post cards. Six visual templates cycle by post id hash: image+multi-stack-stamps, image+sticker+caption, red sunburst, yellow signboard with red border, paper speech bubble, green panel (Sprint 3 + ADR-0010).
 4. **Compose a post** via the FAB; tap it from the feed (Sprint 4 read).
 5. **Tap the heart**, leave a comment, then watch likeCount + commentCount update (Sprint 4 write + ADR-0006).
-6. **Channels tab** — toggle following on/off, watch the **我關注** feed change (Sprint 5).
-7. **Profile tab** — edit your bio, then visit a seed author's profile from a post (Sprint 5).
-8. **Tap 「私訊」** on someone you've never interacted with → eligibility error.
-9. **Comment on their post** first, retry 「私訊」 → conversation lands in Message Request (Sprint 6 + ADR-0003).
-10. **Verify** your account from Profile → 驗證 (Sprint 7 + ADR-0004 simulated review).
-11. **Block** a user from their profile overflow menu — their posts vanish from your feeds (Sprint 7).
+6. **看板** sub-screen (動態 AppBar icon) — toggle channel follow on/off, watch the 動態 feed change (Sprint 5).
+7. **夥伴** tab — daily recommendation cards (same-city or shared-interest), 追蹤 / 略過 actions. No swipe — ADR-0002 stands.
+8. **通知** tab — derived feed of comments on your posts, new DMs, new posts in followed channels, new followers (Sprint 9, no Notification table; queried ad-hoc).
+9. **我** tab → edit profile (city, bio) and visit a seed author's profile from a post (Sprint 5).
+10. **Tap 「私訊」** on someone you've never interacted with → eligibility error per ADR-0003.
+11. **Comment on their post** first, retry 「私訊」 → conversation lands in 訊息 tab badged "訊息邀請" (Sprint 6 + ADR-0003).
+12. **Verify** your account from 我 → ✓ (Sprint 7 + ADR-0004 simulated review).
+13. **Block** a user from their profile overflow menu — their posts vanish from your feeds (Sprint 7).
 
 ## Sprint roadmap
 
@@ -159,6 +165,7 @@ A reviewer can walk every Sprint in 4–5 minutes:
 | 6 | ✅ done | DM with Socket.io + Conversation Eligibility + Message Request |
 | 7 | ✅ done | Verification UI + Block + push notifications |
 | 8 | ✅ done | GCP deploy + screenshots + demo recording |
+| 9 | ✅ done | Visual re-skin to deck + 夥伴 / 通知 / @username (ADR-0010) |
 
 Detailed scope: [`docs/adr/0005-v1-portfolio-scope.md`](./docs/adr/0005-v1-portfolio-scope.md).
 
@@ -171,6 +178,29 @@ Detailed scope: [`docs/adr/0005-v1-portfolio-scope.md`](./docs/adr/0005-v1-portf
 - **Channels as a table, seeded from file.** [ADR-0007](./docs/adr/0007-channels-as-table.md)
 - **User row created at first verified sign-in** (eager, not lazy). [ADR-0008](./docs/adr/0008-user-row-on-firebase-verify.md)
 - **Cloud Run + Neon** over Cloud SQL — scale-to-zero portfolio economics. [ADR-0009](./docs/adr/0009-cloud-run-and-neon.md)
+- **Partial alignment with team's Figma deck** after Sprint 8 — re-skin + selected features (夥伴 / 通知 / @username), explicit list of what stays cut. [ADR-0010](./docs/adr/0010-deck-partial-alignment.md)
+
+## Visual layer
+
+The Sprint 9 re-skin is driven by the team's pitch deck and Figma file (`JGUawgfQV6xjWlirhpk73y`). Source-of-truth tokens live in [`docs/design/figma-tokens.md`](./docs/design/figma-tokens.md) (5 colour scales × 11 stops, pulled directly via the Figma REST API). Component / IA notes in [`docs/design/visual-spec.md`](./docs/design/visual-spec.md). Reference renders saved in [`docs/design/reference/`](./docs/design/reference/).
+
+Brand palette implemented in [`mobile/lib/theme/zaina_theme.dart`](./mobile/lib/theme/zaina_theme.dart):
+
+| Role | Hex | Notes |
+|---|---|---|
+| App background | `#FAF5EC` | base-50, paper cream |
+| Primary (brick red) | `#AF3737` | primary-700, buttons + FAB |
+| Secondary (postbox green) | `#2A522A` | secondary-700, chat bubbles + signboard frames |
+| Boba brown | `#846549` | neutral-600, body emphasis |
+| Gold accent | `#E9A936` | accent-400, sun-rays + verified |
+| Ink | `#2C1F1A` | neutral-950 |
+
+Re-usable design widgets:
+
+- `lib/widgets/zaina_logo.dart` — 在哪 dual-circle logo + welcome signboard
+- `lib/widgets/paper_background.dart` — programmatic paper-noise texture
+- `lib/widgets/sun_ray_background.dart` — gold radial fan, used on splash + welcome
+- `lib/widgets/signboard_card.dart` — 6-template post card cycling by post id hash
 
 ## Future (post-v1)
 
