@@ -56,6 +56,20 @@ class SignboardCard extends StatelessWidget {
     return cleaned.take(3).toList();
   }
 
+  /// Multi-stack stamps only make sense for CJK titles (微/旅/伴).
+  /// English titles like "Hamilton" produce nonsense (H/a/m), so only the
+  /// caption-flavoured templates are used for those.
+  static bool _titleIsCjk(String title) {
+    final firstThree = title.runes
+        .map((r) => String.fromCharCode(r))
+        .where((c) => c.trim().isNotEmpty)
+        .take(3);
+    return firstThree.every((c) {
+      final code = c.runes.first;
+      return code >= 0x4E00 && code <= 0x9FFF;
+    });
+  }
+
   int _hash() => post.id.codeUnits.fold(0, (a, b) => a + b);
 
   /// Aspect ratio per template, varied to give masonry variety.
@@ -85,10 +99,15 @@ class SignboardCard extends StatelessWidget {
     // either ignore the image or fold it in (yellow signboard uses it as a
     // thumbnail inset). This keeps the masonry wall genuinely varied even
     // when every post happens to have an image.
-    final template = hash % 6;
+    var template = hash % 6;
 
     final sticker = _stickerChar(post);
     final stack = _stackChars(post.title);
+
+    // Multi-stack only works for CJK; for non-CJK titles, route to template 1.
+    if (template == 0 && !_titleIsCjk(post.title)) {
+      template = 1;
+    }
 
     return Material(
       color: Colors.transparent,
@@ -389,7 +408,7 @@ class _YellowSignboard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: ZainaPalette.brickRedDeep,
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w900,
                       height: 1.3,
                     ),
@@ -469,8 +488,8 @@ class _SpeechBubbleOnPaper extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: ZainaPalette.brickRedDeep,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
                     height: 1.3,
                   ),
                 ),
@@ -595,30 +614,30 @@ class _CreamCaption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: ZainaPalette.paperCream,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: accent.withValues(alpha: 0.6), width: 1.4),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: accent, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Text(
           title,
-          maxLines: 2,
+          maxLines: 3,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: accent,
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
             height: 1.3,
           ),
         ),
