@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../api/onboarding_api.dart';
 import '../../api/posts_api.dart';
 import '../../models/channel.dart';
+import '../../widgets/paper_background.dart';
 import '../sign_in/auth_providers.dart';
 
 class ComposePostScreen extends ConsumerStatefulWidget {
@@ -83,7 +84,7 @@ class _ComposePostScreenState extends ConsumerState<ComposePostScreen> {
           ),
         ],
       ),
-      body: channelsAsync.when(
+      body: PaperBackground(child: channelsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('載入看板失敗：$e')),
         data: (channels) => ListView(
@@ -158,7 +159,7 @@ class _ComposePostScreenState extends ConsumerState<ComposePostScreen> {
             ],
           ],
         ),
-      ),
+      )),
     );
   }
 }

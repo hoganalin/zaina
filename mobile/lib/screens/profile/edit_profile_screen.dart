@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../api/users_api.dart';
 import '../../models/self_view.dart';
+import '../../widgets/paper_background.dart';
 import '../sign_in/auth_providers.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -81,7 +82,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ),
         ],
       ),
-      body: ListView(
+      body: PaperBackground(child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
@@ -155,7 +156,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 style: const TextStyle(color: Colors.red)),
           ],
         ],
-      ),
+      )),
     );
   }
 }

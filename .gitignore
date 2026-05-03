@@ -54,3 +54,10 @@ Thumbs.db
 
 # ---- Project ----
 .scratch-*
+screen-feed.png
+screen.png
+screen2.png
+logcat.log
+build.log
+api.log
+emulator.log

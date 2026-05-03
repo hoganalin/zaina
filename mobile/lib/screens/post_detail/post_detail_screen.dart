@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../api/posts_api.dart';
 import '../../models/comment.dart';
 import '../../models/feed_post.dart';
+import '../../widgets/paper_background.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   const PostDetailScreen({super.key, required this.postId});
@@ -71,7 +72,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('看貼')),
-      body: postAsync.when(
+      body: PaperBackground(child: postAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('載入失敗：$e')),
         data: (post) => Column(
@@ -174,7 +175,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 }

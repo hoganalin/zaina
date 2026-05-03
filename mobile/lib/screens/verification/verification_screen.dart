@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../api/verifications_api.dart';
+import '../../theme/zaina_theme.dart';
+import '../../widgets/paper_background.dart';
 import '../sign_in/auth_providers.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget {
@@ -50,15 +52,15 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('身份驗證')),
-      body: ListView(
+      body: PaperBackground(child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (isVerified)
             Card(
-              color: Colors.blue.shade50,
+              color: ZainaPalette.postboxGreenSoft,
               child: const ListTile(
-                leading: Icon(Icons.verified, color: Colors.blue),
-                title: Text('已驗證'),
+                leading: Icon(Icons.verified, color: ZainaPalette.postboxGreen),
+                title: Text('已驗證', style: TextStyle(fontWeight: FontWeight.w700)),
                 subtitle: Text('你的個人頁面已標示驗證徽章'),
               ),
             ),
@@ -127,7 +129,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }
