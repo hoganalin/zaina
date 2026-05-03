@@ -252,26 +252,38 @@ class _SunburstBigText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null;
     return Container(
       color: ZainaPalette.brickRed,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (imageUrl != null)
-            Opacity(
-              opacity: 0.35,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: _imgFallback,
+          if (hasImage)
+            Image.network(
+              imageUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: _imgFallback,
+            )
+          else
+            SunRayBackground(
+              color: ZainaPalette.goldSparkle,
+              rayCount: 24,
+              maxRadius: 240,
+              child: const SizedBox.shrink(),
+            ),
+          if (hasImage)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.18),
+                    Colors.black.withValues(alpha: 0.4),
+                  ],
+                ),
               ),
             ),
-          SunRayBackground(
-            color: ZainaPalette.goldSparkle,
-            rayCount: 24,
-            maxRadius: 240,
-            child: const SizedBox.shrink(),
-          ),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -402,26 +414,27 @@ class _SpeechBubbleOnPaper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null;
     return Container(
       color: ZainaPalette.paperCream,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (imageUrl != null)
-            Opacity(
-              opacity: 0.4,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: _imgFallback,
-              ),
+          if (hasImage)
+            Image.network(
+              imageUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: _imgFallback,
+            )
+          else
+            SunRayBackground(
+              color: ZainaPalette.brickRed.withValues(alpha: 0.18),
+              rayCount: 18,
+              maxRadius: 200,
+              child: const SizedBox.shrink(),
             ),
-          SunRayBackground(
-            color: ZainaPalette.brickRed.withValues(alpha: 0.18),
-            rayCount: 18,
-            maxRadius: 200,
-            child: const SizedBox.shrink(),
-          ),
+          if (hasImage)
+            Container(color: Colors.black.withValues(alpha: 0.25)),
           Positioned(top: 10, right: 10, child: _Stamp(char: sticker)),
           Center(
             child: Padding(
@@ -478,35 +491,41 @@ class _GreenPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null;
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            ZainaPalette.postboxGreen,
-            ZainaPalette.postboxGreenDeep,
-          ],
-        ),
-      ),
+      decoration: hasImage
+          ? null
+          : BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  ZainaPalette.postboxGreen,
+                  ZainaPalette.postboxGreenDeep,
+                ],
+              ),
+            ),
+      color: hasImage ? ZainaPalette.postboxGreenDeep : null,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (imageUrl != null)
-            Opacity(
-              opacity: 0.35,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: _imgFallback,
-              ),
+          if (hasImage)
+            Image.network(
+              imageUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: _imgFallback,
+            )
+          else
+            SunRayBackground(
+              color: ZainaPalette.goldSparkle.withValues(alpha: 0.5),
+              rayCount: 16,
+              maxRadius: 200,
+              child: const SizedBox.shrink(),
             ),
-          SunRayBackground(
-            color: ZainaPalette.goldSparkle.withValues(alpha: 0.5),
-            rayCount: 16,
-            maxRadius: 200,
-            child: const SizedBox.shrink(),
-          ),
+          if (hasImage)
+            Container(
+              color: ZainaPalette.postboxGreenDeep.withValues(alpha: 0.45),
+            ),
           Positioned(top: 10, left: 10, child: _Stamp(char: sticker)),
           Center(
             child: _CreamCaption(
