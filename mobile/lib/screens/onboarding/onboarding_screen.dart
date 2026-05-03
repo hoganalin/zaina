@@ -18,34 +18,67 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  static const _stepCount = 4;
+
   final _pageController = PageController();
   int _step = 0;
 
   late final TextEditingController _nicknameCtrl;
+  final _usernameCtrl = TextEditingController();
   Gender? _gender;
   final _countryCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _interestIds = <String>{};
   final _channelIds = <String>{};
 
+  // Username availability state
+  bool? _usernameAvailable;
+  bool _usernameChecking = false;
+
   @override
   void initState() {
     super.initState();
     final initialNick = ref.read(authStateProvider).valueOrNull?.nickname ?? '';
     _nicknameCtrl = TextEditingController(text: initialNick);
+    _usernameCtrl.addListener(_onUsernameChanged);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _nicknameCtrl.dispose();
+    _usernameCtrl.removeListener(_onUsernameChanged);
+    _usernameCtrl.dispose();
     _countryCtrl.dispose();
     _cityCtrl.dispose();
     super.dispose();
   }
 
+  void _onUsernameChanged() async {
+    final value = _usernameCtrl.text.trim();
+    if (value.isEmpty) {
+      setState(() {
+        _usernameAvailable = null;
+        _usernameChecking = false;
+      });
+      return;
+    }
+    setState(() {
+      _usernameChecking = true;
+      _usernameAvailable = null;
+    });
+    final ok = await ref
+        .read(authStateProvider.notifier)
+        .checkUsernameAvailable(value);
+    if (!mounted || _usernameCtrl.text.trim() != value) return;
+    setState(() {
+      _usernameChecking = false;
+      _usernameAvailable = ok;
+    });
+  }
+
   void _next() {
-    if (_step < 2) {
+    if (_step < _stepCount - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
@@ -62,12 +95,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  bool get _canSubmit => _nicknameCtrl.text.trim().isNotEmpty;
+  bool get _canAdvanceFromCurrentStep {
+    switch (_step) {
+      case 0: // nickname
+        return _nicknameCtrl.text.trim().isNotEmpty;
+      case 1: // username — optional, but if filled must be available
+        final v = _usernameCtrl.text.trim();
+        if (v.isEmpty) return true;
+        return _usernameAvailable == true;
+      case 2: // interests — always allow
+      case 3: // channels — always allow
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  bool get _canSubmit =>
+      _nicknameCtrl.text.trim().isNotEmpty &&
+      (_usernameCtrl.text.trim().isEmpty || _usernameAvailable == true);
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
+    final username = _usernameCtrl.text.trim();
     await ref.read(authStateProvider.notifier).submitOnboarding(
           nickname: _nicknameCtrl.text.trim(),
+          username: username.isEmpty ? null : username,
           gender: _gender,
           country: _countryCtrl.text.trim().isEmpty ? null : _countryCtrl.text.trim(),
           city: _cityCtrl.text.trim().isEmpty ? null : _cityCtrl.text.trim(),
@@ -101,6 +154,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onGenderChanged: (g) => setState(() => _gender = g),
                       onChanged: () => setState(() {}),
                     ),
+                    _UsernameStep(
+                      controller: _usernameCtrl,
+                      checking: _usernameChecking,
+                      available: _usernameAvailable,
+                    ),
                     _InterestsStep(
                       selectedIds: _interestIds,
                       onToggle: (id) => setState(() {
@@ -131,11 +189,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   child: FilledButton(
                     onPressed: isSubmitting
                         ? null
-                        : _step < 2
-                            ? (_canSubmit || _step != 0 ? _next : null)
+                        : _step < _stepCount - 1
+                            ? (_canAdvanceFromCurrentStep ? _next : null)
                             : (_canSubmit ? _submit : null),
                     child: Text(
-                      _step < 2 ? '下一步' : (isSubmitting ? '送出中…' : '完成'),
+                      _step < _stepCount - 1
+                          ? '下一步'
+                          : (isSubmitting ? '送出中…' : '完成'),
                     ),
                   ),
                 ),
@@ -155,7 +215,7 @@ class _StepHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['帳號驗證', '身份驗證', '個人資料'];
+    final labels = ['暱稱', '帳號名稱', '興趣', '看板'];
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 18),
       child: Column(
@@ -326,6 +386,89 @@ class _ProfileStep extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _UsernameStep extends StatelessWidget {
+  const _UsernameStep({
+    required this.controller,
+    required this.checking,
+    required this.available,
+  });
+  final TextEditingController controller;
+  final bool checking;
+  final bool? available;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = controller.text.trim();
+    final showAvailable = !checking && available == true && value.isNotEmpty;
+    final showTaken = !checking && available == false && value.isNotEmpty;
+    final invalidFormat =
+        value.isNotEmpty && !RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(value);
+
+    String? helper;
+    Color helperColor = ZainaPalette.bobaBrownDeep;
+    if (checking) {
+      helper = '檢查中…';
+    } else if (invalidFormat) {
+      helper = '3-20 個字元，僅限英數與底線';
+      helperColor = Colors.red;
+    } else if (showAvailable) {
+      helper = '可使用';
+      helperColor = ZainaPalette.postboxGreen;
+    } else if (showTaken) {
+      helper = '已被使用';
+      helperColor = Colors.red;
+    } else {
+      helper = '帳號名稱無法更換，是你的身份識別。可跳過';
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      children: [
+        const Text(
+          '輸入帳號名稱',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: ZainaPalette.inkBlack,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          '個人頁的網址會用到（@username）。可以跳過，之後在「我」→ 編輯也能設。',
+          style: TextStyle(color: ZainaPalette.bobaBrownDeep, fontSize: 13),
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          controller: controller,
+          autocorrect: false,
+          decoration: InputDecoration(
+            labelText: '帳號名稱',
+            prefixText: '@ ',
+            helperText: helper,
+            helperStyle: TextStyle(color: helperColor),
+            suffixIcon: checking
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : showAvailable
+                    ? const Icon(Icons.check_circle,
+                        color: ZainaPalette.postboxGreen)
+                    : showTaken || invalidFormat
+                        ? const Icon(Icons.error_outline, color: Colors.red)
+                        : null,
+          ),
+          maxLength: 20,
         ),
       ],
     );

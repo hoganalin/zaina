@@ -65,6 +65,7 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
 
   Future<void> submitOnboarding({
     required String nickname,
+    String? username,
     Gender? gender,
     String? country,
     String? city,
@@ -77,6 +78,7 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
         '/api/me/onboarding',
         data: {
           'nickname': nickname,
+          if (username != null && username.isNotEmpty) 'username': username,
           if (gender != null) 'gender': _genderToJson(gender),
           if (country != null && country.isNotEmpty) 'country': country,
           if (city != null && city.isNotEmpty) 'city': city,
@@ -86,6 +88,18 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
       );
       return SelfView.fromJson(res.data!['user'] as Map<String, dynamic>);
     });
+  }
+
+  Future<bool> checkUsernameAvailable(String username) async {
+    try {
+      final res = await dio.get<Map<String, dynamic>>(
+        '/api/me/check-username',
+        queryParameters: {'u': username},
+      );
+      return res.data!['available'] as bool;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> signOut() async {
