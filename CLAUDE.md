@@ -2,75 +2,50 @@
 
 Instructions for Claude Code working in this repository.
 
-## What this repo is
+## 專案概述
 
-A portfolio social app called **在哪 ZAINA**, built to demonstrate full-stack ability for a specific job posting (Flutter / Node.js / Vibe Coding / GCP). The product is real and the code is intended to be runnable, but **scope decisions consistently favor "demonstrable in an interview" over "production-ready at scale"**.
+**在哪 ZAINA** — 旅居海外台灣人的「主題優先」社交 App。Portfolio 級別，展示完整全端：**Flutter + Riverpod + freezed + dio**（mobile）／**TypeScript + Hono + Prisma + Postgres + Socket.io**（API）／**Firebase Auth + FCM**／**GCP Cloud Run + Neon**（部署）。產品真實可跑，但所有 scope 取捨偏向「demonstrable in an interview」而非「production-ready at scale」。
 
-## Read these first
+## 常用指令
 
-- [`CONTEXT.md`](./CONTEXT.md) — domain language. Use these terms, avoid the "Avoid" terms. Example: it's a **Channel (看板)**, not a "topic" or "subreddit". (Note: post-Sprint-9, **「夥伴」(companion) is now in active use** as a unilateral-follow recommendation tab — see ADR-0010. Older copy that called it "Followed Person" only is stale.)
-- [`docs/adr/`](./docs/adr/) — every architectural decision and why. If a code pattern looks unusual (e.g. denormalised counts, simulated verification, multi-template signboard cards), check the ADRs before "fixing" it.
-- [`docs/design/visual-spec.md`](./docs/design/visual-spec.md) + [`docs/design/figma-tokens.md`](./docs/design/figma-tokens.md) — the deck visual layer. Brand palette, typography, component cycle. Do NOT eyeball colours — pull from the token catalogue.
+| 指令 | 用途 |
+|---|---|
+| `cd api && npm run dev` | API dev server（tsx watch → http://localhost:3000） |
+| `cd api && npm run typecheck` | `tsc --noEmit` |
+| `cd api && npm test` | vitest 全套（48 cases，串真實 Neon DB） |
+| `cd api && npm run prisma:migrate` | `prisma migrate dev`（產生 + 套用 migration） |
+| `cd api && npm run prisma:seed` | 12 channels + 12 interests + 5 authors + 36 posts |
+| `cd mobile && flutter pub get` | 安裝 mobile 依賴 |
+| `cd mobile && dart run build_runner build --delete-conflicting-outputs` | 產生 freezed/json |
+| `cd mobile && flutter run` | 啟動（Android emulator 預設打 10.0.2.2:3000） |
+| `cd mobile && flutter run --dart-define=API_BASE_URL=http://<ip>:3000` | 真機 / WSL2 指向自訂 host |
+| `cd infra && docker compose up -d` | 本機 Postgres（zaina/zaina/zaina:5432） |
 
-## Repository layout
+## 關鍵規則
 
-```
-mobile/                 Flutter app
-api/                    Node.js + Hono + Prisma backend
-infra/                  docker-compose for local Postgres
-docs/adr/               Architecture Decision Records (always increment by 1)
-docs/design/            Visual spec + Figma token catalogue
-docs/design/reference/  Cached PNG renders pulled from Figma (signin/splash/feed/etc)
-```
+- **全棧領域語言一致** — 用 `CONTEXT.md` 定義的詞（**Channel 看板**，不要 topic / subreddit；**Followed Person**；**Conversation Eligibility**；**Post City**；**Verified Badge**）。「夥伴」是 UI label，後端永遠是單向 UserFollow（ADR-0002 + ADR-0010）。
+- **凡有不直觀的設計就有 ADR** — 動 schema 前讀 ADR-0006（denormalised counts）/ ADR-0007（channel as table）/ ADR-0008（user row eager create）；動 DM 前讀 ADR-0003；動驗證前讀 ADR-0004；要砍／加 feature 前讀 ADR-0005 與 ADR-0010。
+- **顏色與字級一律從 token 取**：`mobile/lib/theme/zaina_theme.dart` ↔ `docs/design/figma-tokens.md`。**禁止 eyeball 任何 hex**。Feed grid 的 `Image.network` **必須帶 `cacheWidth/cacheHeight`**（沒帶會 ANR）。
+- **API：strict TypeScript / `@hono/zod-validator` 驗每個 body+query / Prisma 跨表寫入包 `$transaction` / 套 `requireAuth` 取 `c.var.userId` 與 `c.var.user`**。Mobile：**Riverpod、freezed、dio 單例**，1 screen = 1 directory（`lib/screens/<name>/`），不要用 `FutureBuilder`。
+- **功能開發使用 `docs/plans/` 記錄計畫**（命名 `YYYY-MM-DD-<feature>.md`，內容 User Story → Spec → Tasks）；**完成後 `git mv` 至 `docs/plans/archive/`** 並同步更新 `docs/FEATURES.md` 與 `docs/CHANGELOG.md`。流程細節：`docs/DEVELOPMENT.md §11`。
 
-The `mobile/` and `api/` directories are independent — no shared package manager. Don't try to introduce a monorepo tool (turborepo, nx, pnpm workspace) unless the user explicitly asks.
+> 補充：commit 用 conventional prefix (`feat`/`fix`/`chore`/`docs`/`refactor`/`test`/`perf`)；**絕不 `--amend` 已 push 的 commit**；pre-commit hook 失敗 → 修問題 → 寫新 commit。
+> 推薦 skills：新功能用 `/grill-with-docs` 過詞與 spec、`/tdd` 寫紅綠重構、`/to-issues` 拆 sprint。
 
-## Coding conventions
+## 詳細文件
 
-### API (TypeScript + Hono)
+- [`./docs/README.md`](./docs/README.md) — 項目介紹、技術棧、快速開始、文件索引
+- [`./docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — 目錄結構、啟動流程、API 路由總覽、認證與授權、DB schema、Socket.io / FCM 整合
+- [`./docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) — 命名規則、模組系統、新增 API/middleware/migration 步驟、環境變數表、JSDoc 風格、計畫歸檔流程
+- [`./docs/FEATURES.md`](./docs/FEATURES.md) — 14 個功能的端點規格 + 行為描述 + 業務邏輯 + 錯誤情境
+- [`./docs/TESTING.md`](./docs/TESTING.md) — 測試檔表、執行順序與依賴、輔助函式、寫新測試的步驟、常見陷阱
+- [`./docs/CHANGELOG.md`](./docs/CHANGELOG.md) — Sprint 0–9 變動紀錄
+- [`./docs/adr/`](./docs/adr/) — 10 個架構決策（ADR-0001…0010），新增**永遠 +1**
+- [`./docs/design/`](./docs/design/) — Figma token、視覺規格、cached PNG 匯出
+- [`./docs/plans/`](./docs/plans/) — 進行中計畫（完成移到 `archive/`）
+- [`./CONTEXT.md`](./CONTEXT.md) — 領域語言（讀完這份再讀程式碼）
+- [`./DEPLOY.md`](./DEPLOY.md) — GCP Cloud Run + Neon 部署步驟
 
-- Strict TypeScript (`"strict": true`). Never use `any`; prefer `unknown` then narrow.
-- Validate every request body and query string with `@hono/zod-validator`. Don't read raw `req.body`.
-- Use Prisma for all DB access. Wrap multi-step writes in `prisma.$transaction(...)`.
-- Endpoints follow REST: `GET /api/posts`, `POST /api/posts/:id/comments`, etc.
-- Auth middleware sets `c.set('userId', ...)` after verifying Firebase token. Routes that need auth start with `requireAuth` middleware.
-- Update denormalised counters (`likeCount`, `commentCount`) in the same transaction as the underlying write — see [ADR-0006](./docs/adr/0006-denormalized-post-counts.md).
+## Figma 存取注意
 
-### Mobile (Flutter + Riverpod)
-
-- State management: **Riverpod**, not Provider, not Bloc, not GetX.
-- Models: **freezed + json_serializable**. Never write `fromJson` / `toJson` by hand.
-- HTTP: **dio** with a singleton client. Auth interceptor injects the Firebase ID token on every request.
-- Async data: `FutureProvider` / `StreamProvider`. Don't use `FutureBuilder` directly in widgets.
-- File: 1 screen = 1 directory under `lib/screens/<screen>/`. Each holds the screen widget, its providers, and its state types.
-- **Theme tokens come from `lib/theme/zaina_theme.dart`**. Do not hard-code colours. Brand palette mirrors the Figma file's `顏色（Color）` frame; refresh procedure documented at the bottom of `docs/design/figma-tokens.md`.
-- **Don't render `Image.network` without `cacheWidth/cacheHeight`** on the feed grid — 36 raw bitmaps blew up memory and ANR'd the app on first paint. See commit history for the regression.
-- Bottom nav has **5 tabs** (動態 / 夥伴 / 通知 / 訊息 / 我) per ADR-0010. Sub-screens (channels list, edit profile, post detail, chat, verify) are top-level routes outside the shell, not branches.
-
-### Commits
-
-- Conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
-- One Sprint feature ≈ one PR; commits within can be smaller.
-- Never `--amend` published commits. Pre-commit hook failure → fix and write a new commit.
-
-## Sprint state
-
-Sprint progress lives in the README's roadmap table. When starting a Sprint, update its status to 🚧; when shipping it, mark ✅ and commit.
-
-## Tools the user wants you to use
-
-- **`/grill-with-docs`** when starting a non-trivial new feature — sharpen the design against the domain model first.
-- **`/tdd`** when implementing a feature — red / green / refactor, one vertical slice at a time.
-- **`/to-issues`** when breaking a Sprint into tracked work items.
-
-These live user-globally at `~/.claude/skills/` (not committed in this repo). Don't substitute other skills without asking.
-
-## Scope rule
-
-If something feels like it should be added "for completeness" or "for production" — check [ADR-0005](./docs/adr/0005-v1-portfolio-scope.md) first. The v1 cut is deliberate. Out-of-scope features go in the README's "Future" section, not into the code.
-
-**For deck-driven additions** (anything traceable to `簡報.pdf` or the Figma file), check [ADR-0010](./docs/adr/0010-deck-partial-alignment.md) before implementing. The "Still cut" list there is current — items like swipe/match, MBTI/zodiac/lifestyle profile fields, 專屬話題 editor, ISIC OCR, real Facebook auth, and 未登入瀏覽 stay out unless the user reverses that ADR.
-
-## Figma access
-
-The team's Figma file is `JGUawgfQV6xjWlirhpk73y`. A personal access token is stored in `~/.claude.json` via `claude mcp add user` (see `figma-developer-mcp`). The seat is on a Starter plan with low API quota — burning through `mcp__figma__get_figma_data` heavily can lock the API for *days*. Before doing iterative pulls, check whether the cached renders in `docs/design/reference/` already answer the question.
+Figma 檔 `JGUawgfQV6xjWlirhpk73y`。token 在 `~/.claude.json`（`figma-developer-mcp`）。**Starter plan 配額很低，重複拉 `mcp__figma__get_figma_data` 會把 API 鎖好幾天**。動圖前先確認 `docs/design/reference/` 的 cached PNG 是否已能回答問題。

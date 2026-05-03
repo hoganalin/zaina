@@ -14,7 +14,14 @@ class AuthNotifier extends AsyncNotifier<SelfView?> {
   @override
   Future<SelfView?> build() async {
     if (FirebaseAuth.instance.currentUser == null) return null;
-    return _fetchSelfView();
+    try {
+      return await _fetchSelfView();
+    } catch (_) {
+      // Stale Firebase session that the API no longer recognises (e.g. fresh DB).
+      // Clear it and treat as logged-out so the user lands on a clean sign-in screen.
+      await FirebaseAuth.instance.signOut();
+      return null;
+    }
   }
 
   Future<SelfView?> _fetchSelfView() async {

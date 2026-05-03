@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../theme/zaina_theme.dart';
 import '../../widgets/paper_background.dart';
-import '../../widgets/sun_ray_background.dart';
 import '../../widgets/zaina_logo.dart';
 import 'auth_providers.dart';
 
@@ -17,7 +16,6 @@ class SignInScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final isLoading = authState.isLoading;
-    final error = authState.hasError ? authState.error : null;
     final showApple = !kIsWeb && Platform.isIOS;
 
     return Scaffold(
@@ -28,13 +26,9 @@ class SignInScreen extends ConsumerWidget {
             child: Column(
               children: [
                 const Spacer(),
-                SizedBox(
+                const SizedBox(
                   height: 200,
-                  child: SunRayBackground(
-                    rayCount: 24,
-                    maxRadius: 240,
-                    child: const ZainaLogo(size: 96),
-                  ),
+                  child: Center(child: ZainaLogo(size: 96)),
                 ),
                 Image.asset(
                   'assets/illustrations/three-cups.png',
@@ -96,14 +90,6 @@ class SignInScreen extends ConsumerWidget {
                 if (isLoading) ...[
                   const SizedBox(height: 24),
                   const Center(child: CircularProgressIndicator()),
-                ],
-                if (error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    '登入失敗：$error',
-                    style: const TextStyle(color: Colors.red, fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
                 ],
                 const SizedBox(height: 24),
                 const Padding(
