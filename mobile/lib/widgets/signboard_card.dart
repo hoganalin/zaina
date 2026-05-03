@@ -572,7 +572,7 @@ class _GreenPanel extends StatelessWidget {
 // ---------- shared widgets ----------
 
 class _Stamp extends StatelessWidget {
-  const _Stamp({required this.char, this.size = 32});
+  const _Stamp({required this.char, this.size = 30});
 
   final String char;
   final double size;

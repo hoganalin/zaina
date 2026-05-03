@@ -27,31 +27,31 @@ class SignInScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               children: [
-                const Spacer(flex: 2),
+                const Spacer(),
                 SizedBox(
-                  height: 220,
+                  height: 200,
                   child: SunRayBackground(
                     rayCount: 24,
-                    maxRadius: 220,
-                    child: const ZainaLogo(size: 100),
+                    maxRadius: 240,
+                    child: const ZainaLogo(size: 96),
                   ),
+                ),
+                Image.asset(
+                  'assets/illustrations/three-cups.png',
+                  height: 180,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   '在海外也能感受到台灣人情味',
                   style: TextStyle(
                     color: ZainaPalette.bobaBrownDeep,
-                    fontSize: 13,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Image.asset(
-                  'assets/illustrations/three-cups.png',
-                  height: 140,
-                  fit: BoxFit.contain,
-                ),
-                const Spacer(flex: 2),
+                const Spacer(),
                 _ProviderButton(
                   background: const Color(0xFF1877F2),
                   foreground: Colors.white,

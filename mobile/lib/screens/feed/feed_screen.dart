@@ -99,30 +99,31 @@ class _ChannelChipStrip extends ConsumerWidget {
         final followed = rows.where((r) => r.isFollowing).toList();
         final display = followed.isNotEmpty ? followed : rows;
         return SizedBox(
-          height: 44,
+          height: 36,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
             itemCount: display.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
             itemBuilder: (_, i) {
               final ch = display[i].channel;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: ZainaPalette.brickRed.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  color: ZainaPalette.paperCream,
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: ZainaPalette.brickRed.withValues(alpha: 0.4),
+                    color: ZainaPalette.brickRed.withValues(alpha: 0.5),
+                    width: 1.2,
                   ),
                 ),
                 child: Center(
                   child: Text(
-                    '${ch.icon ?? ''} ${ch.name}',
+                    ch.name,
                     style: const TextStyle(
                       color: ZainaPalette.brickRedDeep,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
