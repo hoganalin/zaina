@@ -20,6 +20,32 @@ ZAINA 的版本變動紀錄。Sprint 為單位（對應 README 的 roadmap），
 
 ---
 
+## Sprint 10 — Mobile 工程紀律 codify + 12 screen READMEs + mobile test 地板（2026-05-04）
+
+對應 ADR：[`adr/0011-mobile-discipline-as-rules.md`](./adr/0011-mobile-discipline-as-rules.md)
+
+### Added
+
+- **`CLAUDE.md` 「Mobile 工程紀律（4 條家規）」段**（+45 lines）：RULE-01 新增登入方式必須走完 4 步清單 / RULE-02 斷線重連策略寫一份不許重複 / RULE-03 每個 screen 附 README / RULE-04 測試跟功能一起交件。違反任何一條 → code review 退件。
+- **12 份 screen README**（`mobile/lib/screens/*/README.md`）：每份用 RULE-03 固定 schema（用途 / API / 資料流 / 已知陷阱）。channels / companions / compose / conversations / feed / notifications / onboarding / post_detail / profile / shell / sign_in / verification 全到位。
+- **`mobile/test/`**：9 個 widget / unit cases 作為 RULE-04 的 floor。`widgets/zaina_logo_test.dart` × 3（ZainaLogo + WelcomeSignboard）、`theme/zaina_theme_test.dart` × 4（M3 + token 驗證）、`api/chat_socket_test.dart` × 2（enum + 初始 status）。
+
+### Changed
+
+- **`mobile/lib/api/chat_socket.dart`**：把 RULE-02 的 reconnect 策略寫進 code——backoff 1s→30s（infinite attempts、cap 30s）、`reconnect_attempt` 自動 refresh Firebase ID token（避免 1 小時過期失效）、新增 `ChatConnectionStatus` enum 4 狀態 + `socket.status` stream 給 UI 顯示「重連中…」。caller (`chat_screen.dart`) 不需改動。
+
+### Hardened
+
+- `flutter test` 9/9 全綠、`flutter analyze` no issues。
+- **`api/test/auth.session.test.ts`** 補 Apple-shaped token case（`firebase.sign_in_provider: 'apple.com'` + 無 `name`，驗 `decoded.name ?? '新朋友'` fallback）——RULE-01 第 4 步收尾，`auth.session` 5/5 全綠。iOS 端 device 驗收待 Mac 環境。
+
+### Deferred / Cut
+
+- **`lib/` 結構重構**（投影片原本寫的 `app/ core/ features/ shared/`）：保留現有 `screens/` 扁平結構（CLAUDE.md `1 screen = 1 directory` 規約），重構成本（改 12 個 screen 的 import 與 router）超過 portfolio 範圍效益。投影片文案改成與 repo 一致的 `screens/` 結構即可。
+- **README staleness audit job**（ADR-0011 v2）：12 份 README 的自動化 lint（比對 screen 實際的 API client + provider 列表）留給未來實作。
+
+---
+
 ## Sprint 9 — 視覺 re-skin + 夥伴 / 通知 / @username（2026-05-02 ~ 2026-05-03）
 
 對應 ADR：[`adr/0010-deck-partial-alignment.md`](./adr/0010-deck-partial-alignment.md)

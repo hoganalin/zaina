@@ -71,6 +71,32 @@ describe('POST /api/auth/session', () => {
     expect(dbUser?.nickname).toBe('Hogan Lin');
   });
 
+  it('creates a User from an Apple-shaped token without `name` (uses 新朋友 fallback)', async () => {
+    const uid = `${TEST_UID_PREFIX}apple-no-name`;
+    verifyIdTokenMock.mockResolvedValueOnce({
+      uid,
+      firebase: {
+        sign_in_provider: 'apple.com',
+        identities: { 'apple.com': [`${uid}.apple`] },
+      },
+    });
+
+    const res = await app.request('/api/auth/session', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer apple-token' },
+    });
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { user: Record<string, unknown> };
+    expect(body.user).toMatchObject({
+      nickname: '新朋友',
+      onboardingCompleted: false,
+    });
+
+    const dbUser = await prisma.user.findUnique({ where: { firebaseUid: uid } });
+    expect(dbUser?.nickname).toBe('新朋友');
+  });
+
   it('returns the same User on repeat sign-in (idempotent)', async () => {
     const uid = `${TEST_UID_PREFIX}repeat`;
     verifyIdTokenMock.mockResolvedValue({ uid, name: 'Repeat User' });

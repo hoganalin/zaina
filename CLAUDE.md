@@ -32,6 +32,51 @@ Instructions for Claude Code working in this repository.
 > 補充：commit 用 conventional prefix (`feat`/`fix`/`chore`/`docs`/`refactor`/`test`/`perf`)；**絕不 `--amend` 已 push 的 commit**；pre-commit hook 失敗 → 修問題 → 寫新 commit。
 > 推薦 skills：新功能用 `/grill-with-docs` 過詞與 spec、`/tdd` 寫紅綠重構、`/to-issues` 拆 sprint。
 
+## Mobile 工程紀律（4 條家規）
+
+這 4 條是 mobile 端「自動出閘」的紀律。違反任何一條，code review 直接退件。
+
+### RULE-01 「新增登入方式」必須走完清單
+
+加 Apple / 第三方登入時，這 4 步缺一不可：
+
+1. **Console 設定**：Firebase Console 啟用 provider（Apple 還要在 Apple Developer 設 Service ID + key）
+2. **手機 SDK 接起來**：mobile 裝對應 plugin、寫 `signInWith<X>()` notifier method
+3. **Token 送進後端**：`POST /api/auth/session` 走通（Firebase Admin SDK verify ID token）
+4. **驗收測試**：`api/test/auth.session.test.ts` 加一個 case 模擬該 provider 的 token shape
+
+少做任何一步 → 不算完成。範例：`signInWithGoogle` (`mobile/lib/screens/sign_in/auth_providers.dart:36`)。
+
+### RULE-02 斷線重連策略寫一份、不許重複
+
+「網路斷了怎麼辦」**只在 `mobile/lib/api/chat_socket.dart` 寫一次**：
+
+- Backoff：1s → 2s → 5s → 10s → 30s（最大 30s）
+- 每次 reconnect 前重新取 Firebase ID token（token 1 小時會過期）
+- Server 端 `io.on('connection')` 會重跑 auth 並重新 join `user:{id}` room，所以 client 端**不需要**重新訂閱
+
+未來任何即時功能（typing、presence、notifications stream）都走同一個 socket、共用這份策略——**不准複製一份新的**。
+
+### RULE-03 每個 screen / feature 都要附 README
+
+`mobile/lib/screens/<name>/README.md` 必填：
+
+1. **這個 screen 是什麼**（一句話 + 主要 user story）
+2. **跟哪些 API 說話**（端點清單 + 對應的 `lib/api/*.dart`）
+3. **資料怎麼流**（Riverpod provider → screen → user action → API → state）
+4. **已知陷阱**（例如 feed 的 `Image.network` 必須帶 `cacheWidth/cacheHeight` 否則 ANR）
+
+新人接手 3 分鐘看懂，不用叫作者來解釋。範例：`mobile/lib/screens/conversations/README.md`、`mobile/lib/screens/feed/README.md`。
+
+### RULE-04 測試要跟功能一起交件
+
+新增 API endpoint 或 mobile 互動邏輯 → 同一次 PR 必須附測試：
+
+- API 改動 → `api/test/<feature>.test.ts` 加 case（串真實 Neon DB，不 mock）
+- Mobile 互動邏輯 → `mobile/test/<area>_test.dart` 加 widget test（不需要跑 emulator）
+
+說「之後補」？退件。這條規矩是讓 `api/` 端 48 個 vitest cases 自然長出來的原因，mobile 端也走同樣標準。
+
 ## 詳細文件
 
 - [`./docs/README.md`](./docs/README.md) — 項目介紹、技術棧、快速開始、文件索引
